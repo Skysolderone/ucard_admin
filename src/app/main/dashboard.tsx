@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import Image from "next/image"
 import {
   BarChart,
@@ -28,6 +28,7 @@ import {
   Printer,
   MoreHorizontal,
   Menu,
+  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card"
@@ -72,13 +73,64 @@ import {
   Pie,
   Cell,
 } from "recharts"
+import CardUsersList from "./components/card-users-list"
+
+interface CardStats {
+  totalCards: number
+  normalCards: number
+  pendingCards: number
+  frozenCards: number
+  totalBalance: number
+  totalRecharge: number
+  totalConsume: number
+  totalWithdraw: number
+}
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("stays")
   const [activeSection, setActiveSection] = useState("dashboard")
   const [isMobile, setIsMobile] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [cardStats, setCardStats] = useState<CardStats>({
+    totalCards: 0,
+    normalCards: 0,
+    pendingCards: 0,
+    frozenCards: 0,
+    totalBalance: 0,
+    totalRecharge: 0,
+    totalConsume: 0,
+    totalWithdraw: 0,
+  })
+  const [statsLoading, setStatsLoading] = useState(false)
   const { toast } = useToast()
+
+  // 获取开卡统计数据
+  const fetchCardStats = useCallback(async () => {
+    setStatsLoading(true)
+    try {
+      const response = await fetch('/api/card-users-mock/stats')
+      const data = await response.json()
+      
+      if (data.success) {
+        setCardStats(data.data)
+      } else {
+        toast({
+          title: "获取统计数据失败",
+          description: data.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('获取统计数据失败:', error)
+      toast({
+        title: "获取统计数据失败",
+        description: "网络错误，请稍后重试",
+        variant: "destructive",
+      })
+    } finally {
+      setStatsLoading(false)
+    }
+  }, [toast])
 
   useEffect(() => {
     const handleResize = () => {
@@ -87,11 +139,16 @@ export default function Dashboard() {
 
     handleResize()
     window.addEventListener("resize", handleResize)
+    
+    // 当切换到开卡数据页面时获取统计数据
+    if (activeSection === "billing") {
+      fetchCardStats()
+    }
 
     return () => {
       window.removeEventListener("resize", handleResize)
     }
-  }, [])
+  }, [activeSection, fetchCardStats])
 
   // Sample data for charts
   const revenueData = [
@@ -257,110 +314,179 @@ export default function Dashboard() {
 
   const renderDashboard = () => (
     <>
-      <div className="flex justify-end mb-4">
-        <p className="text-sm text-gray-600">Wed // July 26th, 2023</p>
+      {/* 欢迎横幅 */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg p-8 mb-8">
+        <div className="max-w-4xl">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">欢迎使用 UCard 管理后台</h1>
+          <p className="text-lg md:text-xl mb-6 text-blue-100">
+            专业的数字卡片管理平台，为您提供完整的开卡数据管理和用户分析服务
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <button
+              onClick={() => setActiveSection("billing")}
+              className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+            >
+              查看开卡数据 →
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+      {/* 功能介绍卡片 */}
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <Card>
-          <CardContent className="p-4 flex items-center">
-            <div className="bg-blue-50 p-3 rounded-full mr-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-blue-500"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M5 12h14"></path>
-                <path d="M12 5l7 7-7 7"></path>
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">
-                Arrival <span className="text-xs">(This week)</span>
-              </p>
-              <div className="flex items-center">
-                <h3 className="text-2xl font-bold mr-2">73</h3>
-                <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-600 rounded">+24%</span>
+          <CardHeader className="pb-3">
+            <div className="flex items-center">
+              <div className="bg-blue-50 p-3 rounded-full mr-4">
+                <CreditCard className="h-6 w-6 text-blue-500" />
               </div>
-              <p className="text-xs text-gray-500">Previous week: 35</p>
+              <div>
+                <CardTitle className="text-lg font-semibold">开卡数据管理</CardTitle>
+                <CardDescription>查看和管理所有用户的开卡信息</CardDescription>
+              </div>
             </div>
+          </CardHeader>
+          <CardContent>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• 查看开卡统计数据</li>
+              <li>• 管理用户开卡状态</li>
+              <li>• 监控KYC审核进度</li>
+              <li>• 分析卡片使用情况</li>
+            </ul>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 flex items-center">
-            <div className="bg-amber-50 p-3 rounded-full mr-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-amber-500"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M19 12H5"></path>
-                <path d="M12 19l-7-7 7-7"></path>
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">
-                Departure <span className="text-xs">(This week)</span>
-              </p>
-              <div className="flex items-center">
-                <h3 className="text-2xl font-bold mr-2">35</h3>
-                <span className="text-xs px-1.5 py-0.5 bg-red-100 text-red-600 rounded">-12%</span>
+          <CardHeader className="pb-3">
+            <div className="flex items-center">
+              <div className="bg-green-50 p-3 rounded-full mr-4">
+                <Users className="h-6 w-6 text-green-500" />
               </div>
-              <p className="text-xs text-gray-500">Previous week: 97</p>
+              <div>
+                <CardTitle className="text-lg font-semibold">用户管理</CardTitle>
+                <CardDescription>监控用户状态和活跃度</CardDescription>
+              </div>
             </div>
+          </CardHeader>
+          <CardContent>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• 实时用户状态监控</li>
+              <li>• KYC认证状态跟踪</li>
+              <li>• 用户行为数据分析</li>
+              <li>• 风险用户识别预警</li>
+            </ul>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 flex items-center">
-            <div className="bg-cyan-50 p-3 rounded-full mr-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-cyan-500"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">
-                Booking <span className="text-xs">(This week)</span>
-              </p>
-              <div className="flex items-center">
-                <h3 className="text-2xl font-bold mr-2">237</h3>
-                <span className="text-xs px-1.5 py-0.5 bg-green-100 text-green-600 rounded">+31%</span>
+          <CardHeader className="pb-3">
+            <div className="flex items-center">
+              <div className="bg-purple-50 p-3 rounded-full mr-4">
+                <DollarSign className="h-6 w-6 text-purple-500" />
               </div>
-              <p className="text-xs text-gray-500">Previous week: 187</p>
+              <div>
+                <CardTitle className="text-lg font-semibold">财务管理</CardTitle>
+                <CardDescription>卡片余额和交易数据分析</CardDescription>
+              </div>
             </div>
+          </CardHeader>
+          <CardContent>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• 卡片余额实时监控</li>
+              <li>• 充值提现交易跟踪</li>
+              <li>• 消费数据统计分析</li>
+              <li>• 财务报表生成导出</li>
+            </ul>
           </CardContent>
         </Card>
 
+      </div> */}
+
+      {/* 快速操作卡片 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold flex items-center">
+              <div className="bg-blue-50 p-2 rounded-lg mr-3">
+                <BarChart className="h-6 w-6 text-blue-500" />
+              </div>
+              快速开始
+            </CardTitle>
+            <CardDescription>选择下方操作快速进入相关功能</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <button
+              onClick={() => setActiveSection("billing")}
+              className="w-full text-left p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
+            >
+              <div className="flex items-center">
+                <CreditCard className="h-5 w-5 text-blue-500 mr-3" />
+                <div>
+                  <p className="font-medium">开卡数据管理</p>
+                  <p className="text-sm text-gray-500">查看和管理用户开卡信息</p>
+                </div>
+              </div>
+            </button>
+          </CardContent>
+        </Card> */}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold flex items-center">
+              <div className="bg-green-50 p-2 rounded-lg mr-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full"></div>
+              </div>
+              系统状态
+            </CardTitle>
+            <CardDescription>当前系统运行状态一览</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">API服务</span>
+              <span className="px-2 py-1 bg-green-100 text-green-600 rounded text-xs">正常运行</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">数据库连接</span>
+              <span className="px-2 py-1 bg-green-100 text-green-600 rounded text-xs">正常连接</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">数据同步</span>
+              <span className="px-2 py-1 bg-green-100 text-green-600 rounded text-xs">实时同步</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 使用提示 */}
+      {/* <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">使用提示</CardTitle>
+          <CardDescription>帮助您更好地使用UCard管理系统</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium mb-2">🚀 开始使用</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• 点击左侧"开卡数据"菜单查看用户数据</li>
+                <li>• 使用筛选功能快速找到目标用户</li>
+                <li>• 点击用户详情查看完整信息</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">📊 数据分析</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• 统计卡片显示关键业务指标</li>
+                <li>• 支持按时间范围筛选数据</li>
+                <li>• 实时监控KYC状态变化</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card> */}
+
+      {/* 隐藏原有复杂内容 */}
+      {/* <div style={{ display: 'none' }}>
         <Card>
           <CardContent className="p-4">
             <p className="text-sm text-gray-500 mb-2">Today Activities</p>
@@ -398,10 +524,10 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
             <CardTitle className="text-base font-medium">Revenue</CardTitle>
@@ -562,10 +688,10 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* Booking Table */}
-      <Card className="mb-6">
+      {/* <Card className="mb-6">
         <CardHeader className="p-4 pb-0">
           <CardTitle className="text-base font-medium">
             Todays Booking <span className="text-xs font-normal text-gray-500">(8 Guest today)</span>
@@ -701,10 +827,10 @@ export default function Dashboard() {
             </div>
           </Tabs>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Calendar and Rating */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader className="p-4 pb-0">
             <CardTitle className="text-base font-medium">Calender</CardTitle>
@@ -890,52 +1016,38 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
     </>
   )
 
   const renderBillingSystem = () => (
     <>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Billing System</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <Filter className="h-4 w-4" />
-            Filter
-          </Button>
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
-          <Button size="sm" className="flex items-center gap-1">
-            <Plus className="h-4 w-4" />
-            New Invoice
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="p-4 flex items-center">
             <div className="bg-blue-50 p-3 rounded-full mr-4">
               <CreditCard className="h-6 w-6 text-blue-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Revenue</p>
-              <h3 className="text-2xl font-bold">Rs.125,000</h3>
-              <p className="text-xs text-green-600">+12% from last month</p>
+              <p className="text-sm text-gray-500">总开卡数量</p>
+              <h3 className="text-2xl font-bold">
+                {statsLoading ? '...' : cardStats.totalCards}
+              </h3>
+              <p className="text-xs text-green-600">已支付开卡费用户</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center">
             <div className="bg-green-50 p-3 rounded-full mr-4">
-              <DollarSign className="h-6 w-6 text-green-500" />
+              <Users className="h-6 w-6 text-green-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Paid Invoices</p>
-              <h3 className="text-2xl font-bold">Rs.98,500</h3>
-              <p className="text-xs text-green-600">78% of total</p>
+              <p className="text-sm text-gray-500">正常用户</p>
+              <h3 className="text-2xl font-bold">
+                {statsLoading ? '...' : cardStats.normalCards}
+              </h3>
+              <p className="text-xs text-green-600">卡片状态正常</p>
             </div>
           </CardContent>
         </Card>
@@ -945,179 +1057,30 @@ export default function Dashboard() {
               <Clock className="h-6 w-6 text-amber-500" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Pending Payments</p>
-              <h3 className="text-2xl font-bold">Rs.26,500</h3>
-              <p className="text-xs text-amber-600">22% of total</p>
+              <p className="text-sm text-gray-500">待完成开卡</p>
+              <h3 className="text-2xl font-bold">
+                {statsLoading ? '...' : cardStats.pendingCards}
+              </h3>
+              <p className="text-xs text-amber-600">逻辑开卡未完成</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center">
+            <div className="bg-red-50 p-3 rounded-full mr-4">
+              <DollarSign className="h-6 w-6 text-red-500" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">总卡余额</p>
+              <h3 className="text-2xl font-bold">
+                {statsLoading ? '...' : `$${cardStats.totalBalance.toFixed(2)}`}
+              </h3>
+              <p className="text-xs text-gray-500">所有用户卡片余额</p>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      <Card className="mb-6">
-        <CardHeader className="p-4 pb-0">
-          <CardTitle className="text-base font-medium">Recent Invoices</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice ID</TableHead>
-                  <TableHead>Guest</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invoices.map((invoice) => (
-                  <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.id}</TableCell>
-                    <TableCell>{invoice.guest}</TableCell>
-                    <TableCell>{invoice.date}</TableCell>
-                    <TableCell>{invoice.amount}</TableCell>
-                    <TableCell>
-                      <Badge variant={invoice.status === "Paid" ? "success" : "warning"}>{invoice.status}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              toast({
-                                title: "Invoice details",
-                                description: `Viewing details for invoice ${invoice.id}`,
-                              })
-                            }}
-                          >
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              toast({
-                                title: "Invoice printed",
-                                description: `Invoice ${invoice.id} sent to printer`,
-                              })
-                            }}
-                          >
-                            <Printer className="h-4 w-4 mr-2" />
-                            Print
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              toast({
-                                title: "Invoice downloaded",
-                                description: `Invoice ${invoice.id} downloaded as PDF`,
-                              })
-                            }}
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => {
-                              toast({
-                                title: "Payment reminder sent",
-                                description: `Reminder sent to ${invoice.guest}`,
-                              })
-                            }}
-                          >
-                            Send Reminder
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button className="mb-6">Create New Invoice</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Create New Invoice</DialogTitle>
-            <DialogDescription>Create a new invoice for a guest. Fill in all the required details.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="guest" className="text-right">
-                Guest
-              </Label>
-              <Select>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select guest" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ram">Ram Kailash</SelectItem>
-                  <SelectItem value="samira">Samira Karki</SelectItem>
-                  <SelectItem value="jeevan">Jeevan Rai</SelectItem>
-                  <SelectItem value="bindu">Bindu Sharma</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="room" className="text-right">
-                Room
-              </Label>
-              <Select>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select room" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="101">101 - King Room</SelectItem>
-                  <SelectItem value="102">102 - Queen Room</SelectItem>
-                  <SelectItem value="201">201 - Deluxe Room</SelectItem>
-                  <SelectItem value="301">301 - Suite</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="date" className="text-right">
-                Date
-              </Label>
-              <Input id="date" type="date" className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="amount" className="text-right">
-                Amount
-              </Label>
-              <Input id="amount" type="number" placeholder="0.00" className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Description
-              </Label>
-              <Textarea id="description" placeholder="Invoice description" className="col-span-3" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="submit"
-              onClick={() => {
-                toast({
-                  title: "Invoice created",
-                  description: "New invoice has been created successfully",
-                })
-              }}
-            >
-              Create Invoice
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CardUsersList />
     </>
   )
 
@@ -1438,7 +1401,7 @@ export default function Dashboard() {
           </div>
         )}
         <div className="p-6 border-b border-gray-200">
-          <h1 className="text-2xl font-semibold text-purple-600">TripyTrip</h1>
+          <h1 className="text-2xl font-semibold text-purple-600">Ucard Admin</h1>
         </div>
         <div className="flex-1 py-4 overflow-y-auto">
           <nav className="space-y-1 px-2">
@@ -1449,7 +1412,7 @@ export default function Dashboard() {
               <BarChart className="mr-3 h-5 w-5" />
               Dashboard
             </button>
-            <button
+            {/* <button
               onClick={() => setActiveSection("check-in-out")}
               className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "check-in-out" ? "text-blue-600 bg-blue-50 border-l-4 border-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
             >
@@ -1476,15 +1439,15 @@ export default function Dashboard() {
             >
               <Star className="mr-3 h-5 w-5" />
               Customer Review
-            </button>
+            </button> */}
             <button
               onClick={() => setActiveSection("billing")}
               className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "billing" ? "text-blue-600 bg-blue-50 border-l-4 border-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
             >
               <CreditCard className="mr-3 h-5 w-5" />
-              Billing System
+              开卡数据
             </button>
-            <button
+            {/* <button
               onClick={() => setActiveSection("food-delivery")}
               className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "food-delivery" ? "text-blue-600 bg-blue-50 border-l-4 border-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
             >
@@ -1497,7 +1460,7 @@ export default function Dashboard() {
             >
               <Award className="mr-3 h-5 w-5" />
               Try Premium Version
-            </button>
+            </button> */}
           </nav>
         </div>
       </div>
@@ -1524,14 +1487,14 @@ export default function Dashboard() {
                       : activeSection === "customer-review"
                         ? "Customer Review"
                         : activeSection === "billing"
-                          ? "Billing System"
+                          ? "开卡数据"
                           : activeSection === "food-delivery"
                             ? "Food Delivery"
                             : "Premium Version"}
             </h1>
           </div>
           <div className="flex items-center space-x-4">
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="flex items-center gap-2 px-3 py-2 h-auto">
                   <Image
@@ -1549,12 +1512,12 @@ export default function Dashboard() {
                 <DropdownMenuItem>Hotel Marriott</DropdownMenuItem>
                 <DropdownMenuItem>Hotel Hyatt</DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
 
-            <Button variant="ghost" size="icon" className="relative">
+            {/* <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
               <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
-            </Button>
+            </Button> */}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -1565,10 +1528,49 @@ export default function Dashboard() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuContent align="end" className="bg-white border border-gray-200 shadow-lg">
+                <DropdownMenuItem
+                  onClick={() => {
+                    toast({
+                      title: "个人资料",
+                      description: "个人资料功能正在开发中",
+                    })
+                  }}
+                >
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    toast({
+                      title: "系统设置",
+                      description: "系统设置功能正在开发中",
+                    })
+                  }}
+                >
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    toast({
+                      title: "退出登录",
+                      description: "正在退出系统...",
+                      variant: "destructive",
+                    })
+                    // 清除本地存储
+                    if (typeof window !== 'undefined') {
+                      localStorage.removeItem('token')
+                      localStorage.removeItem('user')
+                      // 延迟跳转，让用户看到提示
+                      setTimeout(() => {
+                        window.location.href = '/login'
+                      }, 1000)
+                    }
+                  }}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  Logout
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

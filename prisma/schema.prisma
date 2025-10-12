@@ -9,7 +9,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 用户模型
+// 管理员用户模型
 model User {
   id        Int      @id @default(autoincrement())
   username  String   @unique @db.VarChar(50)
@@ -22,4 +22,60 @@ model User {
   @@index([username])
   @@index([status])
   @@map("t_admin_users")
+}
+
+// 开卡用户模型
+model CardUser {
+  id               String      @id @db.VarChar(50) // 卡ID，示例：XR1964949282646220800
+  walletAddress    String      @unique @db.VarChar(100) // 钱包地址
+  firstName        String?     @db.VarChar(50) // KYC姓
+  lastName         String?     @db.VarChar(50) // KYC名
+  paymentHash      String      @db.VarChar(100) // 支付哈希
+  cardType         String      @db.VarChar(20) // 开卡类型：典藏卡/爵士卡/皇家卡
+  cardStatus       Int         @default(1) @db.TinyInt // 1正常，2冻结，3未开卡
+  kycStatus        Int         @default(0) @db.TinyInt // 0未提交，1正常，2进行中，3失败
+  cardBalance      Decimal     @default(0) @db.Decimal(15,2) // 卡余额，美元
+  totalRecharge    Decimal     @default(0) @db.Decimal(15,2) // 累计充值，美元
+  totalConsume     Decimal     @default(0) @db.Decimal(15,2) // 累计消费(含手续费)，美元
+  totalWithdraw    Decimal     @default(0) @db.Decimal(15,2) // 累计提现，美元
+  totalRefund      Decimal     @default(0) @db.Decimal(15,2) // 累计退款(含手续费)，美元
+  cardNumber       String?     @db.VarChar(20) // 卡号，示例：527375******4891
+  expiryDate       String?     @db.VarChar(10) // 有效期，示例：04/28
+  logicalCardTime  DateTime    @map("logical_card_time") // 逻辑开卡时间
+  realCardTime     DateTime?   @map("real_card_time") // 真实开卡时间
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  // 关联交易记录
+  transactions     Transaction[]
+
+  @@index([walletAddress])
+  @@index([cardType])
+  @@index([cardStatus])
+  @@index([kycStatus])
+  @@index([logicalCardTime])
+  @@map("t_card_users")
+}
+
+// 交易记录模型
+model Transaction {
+  id            String      @id @default(cuid())
+  cardId        String      @db.VarChar(50) // 关联卡ID
+  txType        String      @db.VarChar(20) // 交易类型：recharge/consume/withdraw/refund
+  amount        Decimal     @db.Decimal(15,2) // 交易金额
+  fee           Decimal     @default(0) @db.Decimal(15,2) // 手续费
+  txHash        String?     @db.VarChar(100) // 交易哈希
+  status        Int         @default(1) @db.TinyInt // 1成功，2失败，3处理中
+  description   String?     @db.Text // 交易描述
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // 关联卡用户
+  cardUser      CardUser    @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@index([cardId])
+  @@index([txType])
+  @@index([status])
+  @@index([createdAt])
+  @@map("t_transactions")
 }

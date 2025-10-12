@@ -16,13 +16,13 @@ export default function Home() {
 
   useEffect(() => {
     // 检查登录状态，如果已登录则跳转到管理后台
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    // const token = localStorage.getItem('token');
+    // const userData = localStorage.getItem('user');
 
-    if (!token || !userData) {
-      router.push('/login');
-      return;
-    }
+    // if (!token || !userData) {
+    //   router.push('/login');
+    //   return;
+    // }
 
     // 已登录，跳转到管理后台
     router.push('/main/app');
