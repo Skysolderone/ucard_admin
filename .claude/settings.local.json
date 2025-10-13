@@ -3,7 +3,10 @@
     "allow": [
       "Bash(npm run build:*)",
       "Bash(npm run:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(npx prisma db pull:*)",
+      "Bash(set DATABASE_URL=mysql://ucard_app:Q3fGpsiMzIh789@192.168.3.3:3306/ucard)",
+      "Bash(npx prisma generate:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import {
   BarChart,
@@ -87,6 +88,8 @@ interface CardStats {
 }
 
 export default function Dashboard() {
+  const router = useRouter()
+  const [isAuthChecking, setIsAuthChecking] = useState(true)
   const [activeTab, setActiveTab] = useState("stays")
   const [activeSection, setActiveSection] = useState("dashboard")
   const [isMobile, setIsMobile] = useState(false)
@@ -108,7 +111,7 @@ export default function Dashboard() {
   const fetchCardStats = useCallback(async () => {
     setStatsLoading(true)
     try {
-      const response = await fetch('/api/card-users-mock/stats')
+      const response = await fetch('/api/card-users/stats')
       const data = await response.json()
       
       if (data.success) {
@@ -132,14 +135,29 @@ export default function Dashboard() {
     }
   }, [toast])
 
+  // 登录验证 effect - 只在初始化时执行
   useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      // 未登录，立即跳转到登录页
+      router.replace('/login')
+      return
+    }
+    // 验证通过，允许渲染
+    setIsAuthChecking(false)
+  }, [router])
+
+  useEffect(() => {
+    // 只有验证通过后才执行其他逻辑
+    if (isAuthChecking) return
+
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768)
     }
 
     handleResize()
     window.addEventListener("resize", handleResize)
-    
+
     // 当切换到开卡数据页面时获取统计数据
     if (activeSection === "billing") {
       fetchCardStats()
@@ -148,7 +166,7 @@ export default function Dashboard() {
     return () => {
       window.removeEventListener("resize", handleResize)
     }
-  }, [activeSection, fetchCardStats])
+  }, [activeSection, fetchCardStats, isAuthChecking])
 
   // Sample data for charts
   const revenueData = [
@@ -1256,7 +1274,7 @@ export default function Dashboard() {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     >
                       {foodOrdersData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -1374,6 +1392,20 @@ export default function Dashboard() {
       </Dialog>
     </>
   )
+
+  // 如果正在验证登录状态，显示加载页面
+  if (isAuthChecking) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+            <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+          </div>
+          <p className="mt-4 text-gray-600">验证登录状态...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">

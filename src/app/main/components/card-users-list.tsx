@@ -39,7 +39,8 @@ import {
 import { useToast } from "@/components/ui/use-toast"
 
 interface CardUser {
-  id: string
+  id: string // 数据库自增 ID
+  cardId?: string // 业务卡片 ID
   walletAddress: string
   fullName: string
   firstName?: string
@@ -88,7 +89,7 @@ export default function CardUsersList() {
     cardStatuses: [],
     kycStatuses: [],
   })
-  
+
   // 筛选状态
   const [filters, setFilters] = useState({
     walletAddress: '',
@@ -98,13 +99,30 @@ export default function CardUsersList() {
     startDate: '',
     endDate: '',
   })
-  
+
   const { toast } = useToast()
+
+  // 复制到剪贴板
+  const copyToClipboard = (text: string, label: string = "内容") => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast({
+        title: "复制成功",
+        description: `${label}已复制到剪贴板`,
+      })
+    }).catch((err) => {
+      console.error('复制失败:', err)
+      toast({
+        title: "复制失败",
+        description: `请手动复制${label}`,
+        variant: "destructive",
+      })
+    })
+  }
 
   // 获取筛选选项
   const fetchFilterOptions = async () => {
     try {
-      const response = await fetch('/api/card-users-mock/options')
+      const response = await fetch('/api/card-users/options')
       const data = await response.json()
       if (data.success) {
         setFilterOptions(data.data)
@@ -131,7 +149,7 @@ export default function CardUsersList() {
         }
       })
 
-      const response = await fetch(`/api/card-users-mock?${params}`)
+      const response = await fetch(`/api/card-users?${params}`)
       const data = await response.json()
       
       if (data.success) {
@@ -227,14 +245,44 @@ export default function CardUsersList() {
         iconColor: "text-red-600"
       }
     }
-    
+
     const config = configs[status as keyof typeof configs] || configs[0]
     const IconComponent = config.icon
-    
+
     return (
       <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${config.className}`}>
         <IconComponent className={`w-3.5 h-3.5 ${config.iconColor}`} />
         {statusText}
+      </div>
+    )
+  }
+
+  // 获取卡类型徽章组件
+  const getCardTypeBadge = (cardType: string) => {
+    const configs: Record<string, { className: string; iconColor: string }> = {
+      '皇家卡': {
+        className: "bg-gradient-to-r from-gray-900 to-black text-amber-400 border-amber-600",
+        iconColor: "text-amber-400"
+      },
+      '爵士卡': {
+        className: "bg-gradient-to-r from-amber-400 to-yellow-500 text-gray-900 border-yellow-600",
+        iconColor: "text-yellow-700"
+      },
+      '典藏卡': {
+        className: "bg-gradient-to-r from-slate-200 to-slate-300 text-slate-800 border-slate-400",
+        iconColor: "text-slate-600"
+      }
+    }
+
+    const config = configs[cardType] || {
+      className: "bg-gray-100 text-gray-800 border-gray-300",
+      iconColor: "text-gray-600"
+    }
+
+    return (
+      <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border shadow-sm ${config.className}`}>
+        <CreditCard className={`w-3.5 h-3.5 ${config.iconColor}`} />
+        {cardType}
       </div>
     )
   }
@@ -419,8 +467,10 @@ export default function CardUsersList() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50/50 border-b border-gray-200">
+                  <TableHead className="font-semibold text-gray-700 py-4 w-16">序号</TableHead>
                   <TableHead className="font-semibold text-gray-700 py-4">姓名</TableHead>
                   <TableHead className="font-semibold text-gray-700 py-4">钱包地址</TableHead>
+                  <TableHead className="font-semibold text-gray-700 py-4">支付哈希</TableHead>
                   <TableHead className="font-semibold text-gray-700 py-4">开卡类型</TableHead>
                   <TableHead className="font-semibold text-gray-700 py-4">卡片状态</TableHead>
                   <TableHead className="font-semibold text-gray-700 py-4">KYC状态</TableHead>
@@ -439,39 +489,108 @@ export default function CardUsersList() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={15} className="text-center py-8">
+                    <TableCell colSpan={17} className="text-center py-8">
                       加载中...
                     </TableCell>
                   </TableRow>
                 ) : cardUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={15} className="text-center py-8">
+                    <TableCell colSpan={17} className="text-center py-8">
                       暂无数据
                     </TableCell>
                   </TableRow>
                 ) : (
                   cardUsers.map((user, index) => (
-                    <TableRow 
-                      key={user.id} 
+                    <TableRow
+                      key={user.id}
                       className={`transition-colors hover:bg-gray-50/50 border-b border-gray-100 ${
                         index % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'
                       }`}
                     >
+                      <TableCell className="py-4">
+                        <div className="font-medium text-gray-600 text-center">
+                          {user.id}
+                        </div>
+                      </TableCell>
                       <TableCell className="py-4">
                         <div className="font-medium text-gray-900">
                           {user.fullName || '未填写'}
                         </div>
                       </TableCell>
                       <TableCell className="py-4">
-                        <div className="font-mono text-xs max-w-[120px] truncate bg-gray-100 px-2 py-1 rounded text-gray-700" title={user.walletAddress}>
-                          {user.walletAddress}
-                        </div>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button
+                              className="font-mono text-xs max-w-[120px] truncate bg-gray-100 px-2 py-1 rounded text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer text-left"
+                              title="点击查看完整地址"
+                            >
+                              {user.walletAddress}
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-lg">
+                            <DialogHeader>
+                              <DialogTitle>钱包地址</DialogTitle>
+                              <DialogDescription>
+                                点击下方按钮复制完整地址
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <p className="font-mono text-sm break-all text-gray-900">
+                                  {user.walletAddress}
+                                </p>
+                              </div>
+                              <Button
+                                onClick={() => copyToClipboard(user.walletAddress, "钱包地址")}
+                                className="w-full"
+                              >
+                                复制地址
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                       </TableCell>
                       <TableCell className="py-4">
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="w-4 h-4 text-purple-600" />
-                          <span className="font-medium text-gray-900">{user.cardType}</span>
-                        </div>
+                        {user.paymentHash ? (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <button
+                                className="font-mono text-xs max-w-[120px] truncate bg-blue-50 px-2 py-1 rounded text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer text-left"
+                                title="点击查看完整哈希"
+                              >
+                                {user.paymentHash}
+                              </button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-lg">
+                              <DialogHeader>
+                                <DialogTitle>支付哈希</DialogTitle>
+                                <DialogDescription>
+                                  点击下方按钮复制完整哈希
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4 py-4">
+                                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                  <p className="font-mono text-sm break-all text-gray-900">
+                                    {user.paymentHash}
+                                  </p>
+                                </div>
+                                <Button
+                                  onClick={() => copyToClipboard(user.paymentHash, "支付哈希")}
+                                  className="w-full"
+                                >
+                                  复制哈希
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        ) : (
+                          <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded text-gray-500">
+                            未填写
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-4">
+                        {getCardTypeBadge(user.cardType)}
                       </TableCell>
                       <TableCell className="py-4">
                         {getCardStatusBadge(user.cardStatus, user.cardStatusText)}
@@ -495,9 +614,43 @@ export default function CardUsersList() {
                         <span className="font-medium text-purple-600">{formatAmount(user.totalRefund)}</span>
                       </TableCell>
                       <TableCell className="py-4">
-                        <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded text-gray-700">
-                          {user.cardNumber || '未获取'}
-                        </span>
+                        {user.cardNumber ? (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <button
+                                className="font-mono text-sm bg-gray-100 px-2 py-1 rounded text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer"
+                                title="点击查看完整卡号"
+                              >
+                                {user.cardNumber}
+                              </button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-lg">
+                              <DialogHeader>
+                                <DialogTitle>卡号</DialogTitle>
+                                <DialogDescription>
+                                  点击下方按钮复制完整卡号
+                                </DialogDescription>
+                              </DialogHeader>
+                              <div className="space-y-4 py-4">
+                                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                  <p className="font-mono text-sm break-all text-gray-900">
+                                    {user.cardNumber}
+                                  </p>
+                                </div>
+                                <Button
+                                  onClick={() => copyToClipboard(user.cardNumber!, "卡号")}
+                                  className="w-full"
+                                >
+                                  复制卡号
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        ) : (
+                          <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded text-gray-500">
+                            未获取
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell className="py-4">
                         <span className="font-mono text-sm text-gray-600">
@@ -529,17 +682,37 @@ export default function CardUsersList() {
                             <DialogHeader>
                               <DialogTitle>用户详情</DialogTitle>
                               <DialogDescription>
-                                卡ID: {user.id}
+                                数据库ID: {user.id} {user.cardId && `| 卡片ID: ${user.cardId}`}
                               </DialogDescription>
                             </DialogHeader>
                             <div className="grid grid-cols-2 gap-4 py-4">
+                              <div>
+                                <Label>数据库ID</Label>
+                                <p className="mt-1 font-mono text-sm">{user.id}</p>
+                              </div>
+                              {user.cardId && (
+                                <div>
+                                  <Label>卡片ID</Label>
+                                  <p className="mt-1 font-mono text-sm">{user.cardId}</p>
+                                </div>
+                              )}
                               <div>
                                 <Label>姓名</Label>
                                 <p className="mt-1">{user.fullName || '未填写'}</p>
                               </div>
                               <div>
                                 <Label>钱包地址</Label>
-                                <p className="mt-1 font-mono text-xs break-all">{user.walletAddress}</p>
+                                <div className="mt-1 flex items-center gap-2">
+                                  <p className="font-mono text-xs break-all flex-1">{user.walletAddress}</p>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => copyToClipboard(user.walletAddress, "钱包地址")}
+                                    className="shrink-0"
+                                  >
+                                    复制
+                                  </Button>
+                                </div>
                               </div>
                               <div>
                                 <Label>支付哈希</Label>
@@ -547,7 +720,9 @@ export default function CardUsersList() {
                               </div>
                               <div>
                                 <Label>开卡类型</Label>
-                                <p className="mt-1">{user.cardType}</p>
+                                <div className="mt-2">
+                                  {getCardTypeBadge(user.cardType)}
+                                </div>
                               </div>
                               <div>
                                 <Label>卡片状态</Label>
@@ -583,7 +758,21 @@ export default function CardUsersList() {
                               </div>
                               <div>
                                 <Label>卡号</Label>
-                                <p className="mt-1">{user.cardNumber || '未获取'}</p>
+                                {user.cardNumber ? (
+                                  <div className="mt-1 flex items-center gap-2">
+                                    <p className="font-mono text-xs break-all flex-1">{user.cardNumber}</p>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => copyToClipboard(user.cardNumber!, "卡号")}
+                                      className="shrink-0"
+                                    >
+                                      复制
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <p className="mt-1 text-gray-500">未获取</p>
+                                )}
                               </div>
                               <div>
                                 <Label>有效期</Label>

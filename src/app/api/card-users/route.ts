@@ -1,113 +1,242 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// 获取状态文本
+function getCardStatusText(status: number | null | undefined): string {
+  switch (status) {
+    case 1: return '正常';
+    case 2: return '冻结';
+    case 3: return '未开卡';
+    default: return '未知';
+  }
+}
+
+function getKycStatusText(status: number | null | undefined): string {
+  switch (status) {
+    case 0: return '未提交';
+    case 1: return '正常';
+    case 2: return '进行中';
+    case 3: return '失败';
+    default: return '未知';
+  }
+}
+
+// 获取卡类型文本（根据 card_type 值映射）
+function getCardTypeText(cardType: string | null | undefined): string {
+  // 根据实际数据库中的值进行映射
+  if (!cardType) return '未知';
+
+  // 卡类型映射：A-皇家卡, B-爵士卡
+  switch (cardType.toUpperCase()) {
+    case 'A': return '皇家卡';
+    case 'B': return '爵士卡';
+    case 'C': return '典藏卡';
+    // 兼容数字类型
+    case '1': return '皇家卡';
+    case '2': return '爵士卡';
+    case '3': return '典藏卡';
+    default: return cardType; // 如果已经是中文，直接返回
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    
+
     // 获取查询参数
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const walletAddress = searchParams.get('walletAddress') || '';
-    const cardType = searchParams.get('cardType') || '';
+    const cardTypeParam = searchParams.get('cardType') || '';
     const cardStatus = searchParams.get('cardStatus');
     const kycStatus = searchParams.get('kycStatus');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
     // 构建查询条件
-    const where: Record<string, unknown> = {};
+    const where: any = {};
 
     if (walletAddress) {
-      where.walletAddress = {
-        contains: walletAddress
+      where.wallet = {
+        contains: walletAddress,
       };
     }
 
-    if (cardType) {
-      where.cardType = cardType;
+    if (cardTypeParam) {
+      where.cardType = cardTypeParam;
     }
 
     if (cardStatus !== null && cardStatus !== '') {
-      where.cardStatus = parseInt(cardStatus);
+      where.status = parseInt(cardStatus);
     }
 
     if (kycStatus !== null && kycStatus !== '') {
       where.kycStatus = parseInt(kycStatus);
     }
 
-    // 时间范围筛选（基于逻辑开卡时间）
+    // 日期筛选
     if (startDate || endDate) {
-      where.logicalCardTime = {};
+      where.createdAt = {};
       if (startDate) {
-        where.logicalCardTime.gte = new Date(startDate);
+        where.createdAt.gte = new Date(startDate);
       }
       if (endDate) {
-        where.logicalCardTime.lte = new Date(endDate + 'T23:59:59.999Z');
+        const endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        where.createdAt.lte = endDateTime;
       }
     }
 
-    // 计算偏移量
+    // 查询总数
+    const total = await prisma.cardInfo.count({ where });
+    const totalPages = Math.ceil(total / limit);
     const skip = (page - 1) * limit;
 
-    // 查询数据
-    const [cardUsers, total] = await Promise.all([
-      prisma.cardUser.findMany({
-        where,
-        orderBy: {
-          logicalCardTime: 'desc' // 按开卡时间倒序
+    // 查询数据 - 按真实开卡时间（updatedAt）降序排列
+    const cardInfos = await prisma.cardInfo.findMany({
+      where,
+      orderBy: [
+        {
+          updatedAt: 'desc', // 优先按真实开卡时间降序
         },
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          walletAddress: true,
-          firstName: true,
-          lastName: true,
-          paymentHash: true,
-          cardType: true,
-          cardStatus: true,
-          kycStatus: true,
-          cardBalance: true,
-          totalRecharge: true,
-          totalConsume: true,
-          totalWithdraw: true,
-          totalRefund: true,
-          cardNumber: true,
-          expiryDate: true,
-          logicalCardTime: true,
-          realCardTime: true,
-          createdAt: true,
-          updatedAt: true
-        }
-      }),
-      prisma.cardUser.count({ where })
-    ]);
+        {
+          createdAt: 'desc', // 如果 updatedAt 相同或为 null，则按创建时间降序
+        },
+      ],
+      skip,
+      take: limit,
+    });
 
-    // 格式化数据
-    const formattedUsers = cardUsers.map(user => ({
-      ...user,
-      fullName: user.firstName && user.lastName 
-        ? `${user.firstName} ${user.lastName}` 
-        : '',
-      cardStatusText: getCardStatusText(user.cardStatus),
-      kycStatusText: getKycStatusText(user.kycStatus),
-      cardBalance: Number(user.cardBalance),
-      totalRecharge: Number(user.totalRecharge),
-      totalConsume: Number(user.totalConsume),
-      totalWithdraw: Number(user.totalWithdraw),
-      totalRefund: Number(user.totalRefund)
-    }));
+    // 批量查询 KYC 信息以提升性能
+    const cardHolderIds = cardInfos.map(card => card.cardHolderId).filter(Boolean) as string[];
+    const cardIds = cardInfos.map(card => card.cardId).filter(Boolean) as string[];
+
+    // 查询所有相关的 KYC 审核记录（kyc_status = 1）
+    const kycAudings = await prisma.kycAuding.findMany({
+      where: {
+        cardHolderId: { in: cardHolderIds },
+        kycStatus: 1,
+      },
+      include: {
+        kycInfo: true, // 关联查询 KYC 详细信息
+      },
+    });
+
+    // 查询所有相关的交易记录并按 wallet、card_id 和 trade_type 聚合
+    const cardActions = await prisma.cardAction.groupBy({
+      by: ['wallet', 'cardId', 'tradeType'],
+      where: {
+        cardId: { in: cardIds },
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    // 创建 KYC 映射表 (使用 card_holder_id 作为 key)
+    const kycMap = new Map<string, { firstName: string | null; lastName: string | null }>();
+
+    for (const auding of kycAudings) {
+      if (auding.cardHolderId && auding.kycInfo) {
+        kycMap.set(auding.cardHolderId, {
+          firstName: auding.kycInfo.firstName,
+          lastName: auding.kycInfo.lastName,
+        });
+      }
+    }
+
+    // 创建交易金额映射表 (使用 wallet_cardId 作为 key)
+    const transactionMap = new Map<string, {
+      totalRecharge: number;
+      totalWithdraw: number;
+      totalConsume: number;
+      totalRefund: number;
+    }>();
+
+    for (const action of cardActions) {
+      if (!action.wallet || !action.cardId) continue;
+
+      const key = `${action.wallet}_${action.cardId}`;
+
+      if (!transactionMap.has(key)) {
+        transactionMap.set(key, {
+          totalRecharge: 0,
+          totalWithdraw: 0,
+          totalConsume: 0,
+          totalRefund: 0,
+        });
+      }
+
+      const totals = transactionMap.get(key)!;
+      const amount = Number(action._sum.amount || 0);
+
+      switch (action.tradeType) {
+        case 'deposit':
+          totals.totalRecharge += amount;
+          break;
+        case 'withdraw':
+          totals.totalWithdraw += amount;
+          break;
+        case 'auth':
+          totals.totalConsume += amount;
+          break;
+        case 'refund':
+          totals.totalRefund += amount;
+          break;
+      }
+    }
+
+    // 转换数据格式以匹配前端期望
+    const formattedData = cardInfos.map(card => {
+      // 根据 card_holder_id 查找 KYC 信息
+      const kycData = card.cardHolderId ? kycMap.get(card.cardHolderId) : undefined;
+
+      // 拼接姓名
+      let fullName = card.cardHolderId || '未填写';
+      if (kycData && (kycData.firstName || kycData.lastName)) {
+        fullName = `${kycData.firstName || ''} ${kycData.lastName || ''}`.trim();
+      }
+
+      // 根据 wallet + card_id 查找交易统计数据
+      const transactionKey = `${card.wallet}_${card.cardId}`;
+      const transactions = transactionMap.get(transactionKey);
+
+      return {
+        id: card.id.toString(), // 使用数据库自增 ID
+        cardId: card.cardId || '', // 业务卡片 ID
+        walletAddress: card.wallet || '',
+        firstName: kycData?.firstName || null,
+        lastName: kycData?.lastName || null,
+        fullName: fullName,
+        paymentHash: card.transferHash || '', // 支付哈希来自 transfer_hash 字段
+        cardType: getCardTypeText(card.cardType),
+        cardStatus: card.status || 0,
+        cardStatusText: getCardStatusText(card.status),
+        kycStatus: card.kycStatus || 0,
+        kycStatusText: getKycStatusText(card.kycStatus),
+        cardBalance: Number(card.cardAmount || 0),
+        totalRecharge: transactions?.totalRecharge || 0,
+        totalConsume: transactions?.totalConsume || 0,
+        totalWithdraw: transactions?.totalWithdraw || 0,
+        totalRefund: transactions?.totalRefund || 0,
+        cardNumber: card.cardNo || null,
+        expiryDate: card.expeireTime || null,
+        logicalCardTime: card.createdAt?.toISOString() || new Date().toISOString(),
+        realCardTime: card.updatedAt?.toISOString() || null,
+        createdAt: card.createdAt?.toISOString() || new Date().toISOString(),
+        updatedAt: card.updatedAt?.toISOString() || new Date().toISOString(),
+      };
+    });
 
     return NextResponse.json({
       success: true,
       data: {
-        list: formattedUsers,
+        list: formattedData,
         pagination: {
           page,
           limit,
           total,
-          totalPages: Math.ceil(total / limit)
+          totalPages
         }
       }
     });
@@ -122,35 +251,5 @@ export async function GET(request: NextRequest) {
       },
       { status: 500 }
     );
-  }
-}
-
-// 获取卡片状态文本
-function getCardStatusText(status: number): string {
-  switch (status) {
-    case 1:
-      return '正常';
-    case 2:
-      return '冻结';
-    case 3:
-      return '未开卡';
-    default:
-      return '未知';
-  }
-}
-
-// 获取KYC状态文本
-function getKycStatusText(status: number): string {
-  switch (status) {
-    case 0:
-      return '未提交';
-    case 1:
-      return '正常';
-    case 2:
-      return '进行中';
-    case 3:
-      return '失败';
-    default:
-      return '未知';
   }
 }

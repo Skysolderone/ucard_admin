@@ -1,47 +1,63 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// 获取卡类型文本
+function getCardTypeLabel(cardType: string): string {
+  switch (cardType.toUpperCase()) {
+    case 'A': return '皇家卡';
+    case 'B': return '爵士卡';
+    case 'C': return '典藏卡';
+    // 兼容数字类型
+    case '1': return '皇家卡';
+    case '2': return '爵士卡';
+    case '3': return '典藏卡';
+    default: return cardType;
+  }
+}
+
 export async function GET() {
   try {
-    // 获取所有可用的筛选选项
-    const [cardTypes, cardStatuses, kycStatuses] = await Promise.all([
-      // 获取所有开卡类型
-      prisma.cardUser.findMany({
-        select: {
-          cardType: true
-        },
-        distinct: ['cardType']
-      }),
-      // 获取所有卡片状态
-      prisma.cardUser.findMany({
-        select: {
-          cardStatus: true
-        },
-        distinct: ['cardStatus']
-      }),
-      // 获取所有KYC状态
-      prisma.cardUser.findMany({
-        select: {
-          kycStatus: true
-        },
-        distinct: ['kycStatus']
-      })
-    ]);
+    // 从数据库查询实际存在的卡类型
+    const distinctCardTypes = await prisma.cardInfo.findMany({
+      where: {
+        cardType: {
+          not: null
+        }
+      },
+      select: {
+        cardType: true
+      },
+      distinct: ['cardType']
+    });
 
-    // 格式化选项数据
+    // 转换为前端需要的格式
+    const cardTypes = distinctCardTypes
+      .filter(item => item.cardType)
+      .map(item => ({
+        value: item.cardType!,
+        label: getCardTypeLabel(item.cardType!)
+      }));
+
+    // 如果数据库中没有数据，使用默认选项
+    const finalCardTypes = cardTypes.length > 0 ? cardTypes : [
+      { value: "A", label: "皇家卡" },
+      { value: "B", label: "爵士卡" },
+      { value: "C", label: "典藏卡" }
+    ];
+
     const options = {
-      cardTypes: cardTypes.map(item => ({
-        value: item.cardType,
-        label: item.cardType
-      })),
-      cardStatuses: cardStatuses.map(item => ({
-        value: item.cardStatus,
-        label: getCardStatusText(item.cardStatus)
-      })),
-      kycStatuses: kycStatuses.map(item => ({
-        value: item.kycStatus,
-        label: getKycStatusText(item.kycStatus)
-      }))
+      cardTypes: finalCardTypes,
+      cardStatuses: [
+        { value: 1, label: "正常" },
+        { value: 2, label: "冻结" },
+        { value: 3, label: "未开卡" }
+      ],
+      kycStatuses: [
+        { value: 0, label: "未提交" },
+        { value: 1, label: "正常" },
+        { value: 2, label: "进行中" },
+        { value: 3, label: "失败" }
+      ]
     };
 
     return NextResponse.json({
@@ -59,35 +75,5 @@ export async function GET() {
       },
       { status: 500 }
     );
-  }
-}
-
-// 获取卡片状态文本
-function getCardStatusText(status: number): string {
-  switch (status) {
-    case 1:
-      return '正常';
-    case 2:
-      return '冻结';
-    case 3:
-      return '未开卡';
-    default:
-      return '未知';
-  }
-}
-
-// 获取KYC状态文本
-function getKycStatusText(status: number): string {
-  switch (status) {
-    case 0:
-      return '未提交';
-    case 1:
-      return '正常';
-    case 2:
-      return '进行中';
-    case 3:
-      return '失败';
-    default:
-      return '未知';
   }
 }
