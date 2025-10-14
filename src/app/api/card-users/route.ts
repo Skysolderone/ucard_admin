@@ -112,14 +112,30 @@ export async function GET(request: NextRequest) {
     const cardIds = cardInfos.map((card: any) => card.cardId).filter(Boolean) as string[];
 
     // 查询所有相关的 KYC 审核记录（kyc_status = 1）
+    // 注意：如果 KYC 信息包含无效日期，使用 select 而非 include 来避免错误
     const kycAudings = await prisma.kycAuding.findMany({
       where: {
         cardHolderId: { in: cardHolderIds },
         kycStatus: 1,
       },
-      include: {
-        kycInfo: true, // 关联查询 KYC 详细信息
+      select: {
+        id: true,
+        cardHolderId: true,
+        kycInfoId: true,
+        kycInfo: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+            mobile: true,
+            // 排除 dateOfBirth 字段以避免无效日期错误
+          }
+        }
       },
+    }).catch((error) => {
+      // 如果查询失败（如无效日期），记录错误并返回空数组
+      console.error('查询 KYC 信息失败，可能存在无效日期数据:', error.message);
+      return [];
     });
 
     // 查询所有相关的交易记录并按 wallet、card_id 和 trade_type 聚合
