@@ -2,6 +2,7 @@
 
 import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { encryptPassword } from '@/lib/crypto';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,12 +26,15 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      // 加密密码
+      const encryptedPassword = await encryptPassword(password);
+
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password: encryptedPassword }),
       });
 
       const data = await response.json();
