@@ -109,9 +109,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-600">
+        {/* <div className="mt-6 text-center text-sm text-gray-600">
           <p>默认账户：admin / admin123456</p>
-        </div>
+        </div> */}
       </div>
     </div>
   );
