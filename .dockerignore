@@ -10,10 +10,10 @@ out
 build
 
 # 环境变量（保留 .env.production）
-.env.local
-.env.development
-.env.test
-.env
+!.env.local
+!.env.development
+!.env.test
+!.env
 
 # 测试
 coverage
