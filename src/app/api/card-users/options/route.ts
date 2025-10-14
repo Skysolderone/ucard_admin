@@ -32,8 +32,8 @@ export async function GET() {
 
     // 转换为前端需要的格式
     const cardTypes = distinctCardTypes
-      .filter(item => item.cardType)
-      .map(item => ({
+      .filter((item: { cardType: string | null }) => item.cardType)
+      .map((item: { cardType: string | null }) => ({
         value: item.cardType!,
         label: getCardTypeLabel(item.cardType!)
       }));

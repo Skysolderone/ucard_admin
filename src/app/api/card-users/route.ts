@@ -108,8 +108,8 @@ export async function GET(request: NextRequest) {
     });
 
     // 批量查询 KYC 信息以提升性能
-    const cardHolderIds = cardInfos.map(card => card.cardHolderId).filter(Boolean) as string[];
-    const cardIds = cardInfos.map(card => card.cardId).filter(Boolean) as string[];
+    const cardHolderIds = cardInfos.map((card: any) => card.cardHolderId).filter(Boolean) as string[];
+    const cardIds = cardInfos.map((card: any) => card.cardId).filter(Boolean) as string[];
 
     // 查询所有相关的 KYC 审核记录（kyc_status = 1）
     const kycAudings = await prisma.kycAuding.findMany({
@@ -187,7 +187,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 转换数据格式以匹配前端期望
-    const formattedData = cardInfos.map(card => {
+    const formattedData = cardInfos.map((card: any) => {
       // 根据 card_holder_id 查找 KYC 信息
       const kycData = card.cardHolderId ? kycMap.get(card.cardHolderId) : undefined;
 

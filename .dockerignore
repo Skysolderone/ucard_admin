@@ -1,29 +1,62 @@
 # 依赖
 node_modules
 npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # Next.js
 .next
 out
 build
 
-# 环境变量
+# 环境变量（保留 .env.production）
 .env.local
 .env.development
 .env.test
+.env
 
 # 测试
 coverage
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__
 
 # IDE
 .vscode
 .idea
 *.swp
 *.swo
+*.sublime-*
 
-# 其他
+# 文档
+README.md
+CHANGELOG.md
+LICENSE
+*.md
+!package.json
+
+# Git
 .git
 .gitignore
-README.md
+.gitattributes
+
+# 部署脚本
+pack-*.bat
+pack-*.sh
+clean-*.bat
+clean-*.sh
+docker-compose.yml
+*.tar
+*.tar.gz
+*.zip
+ucard_admin_deploy.*
+ucard_admin_docker.*
+
+# 其他
 .DS_Store
 *.log
+.cache
+.turbo
+.vercel
