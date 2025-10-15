@@ -92,7 +92,7 @@ export default function CardUsersList() {
 
   // 筛选状态
   const [filters, setFilters] = useState({
-    walletAddress: '',
+    searchKeyword: '',
     cardType: '',
     cardStatus: '',
     kycStatus: '',
@@ -177,7 +177,7 @@ export default function CardUsersList() {
   // 重置筛选条件
   const resetFilters = () => {
     const emptyFilters = {
-      walletAddress: '',
+      searchKeyword: '',
       cardType: '',
       cardStatus: '',
       kycStatus: '',
@@ -323,20 +323,20 @@ export default function CardUsersList() {
         <CardContent className="space-y-4 pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4 items-end">
               <div>
-                <Label htmlFor="walletAddress">钱包地址</Label>
+                <Label htmlFor="searchKeyword">钱包地址/卡号</Label>
                 <Input
-                  id="walletAddress"
-                  placeholder="输入钱包地址"
-                  value={filters.walletAddress}
+                  id="searchKeyword"
+                  placeholder="输入钱包地址或卡号"
+                  value={filters.searchKeyword}
                   onChange={(e) => {
-                    const newFilters = { ...filters, walletAddress: e.target.value }
+                    const newFilters = { ...filters, searchKeyword: e.target.value }
                     setFilters(newFilters)
                     setPagination(prev => ({ ...prev, page: 1 }))
                     fetchCardUsers(1, newFilters)
                   }}
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="cardType">开卡类型</Label>
                 <Select

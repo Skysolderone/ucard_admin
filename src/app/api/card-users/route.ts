@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     // 获取查询参数
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
-    const walletAddress = searchParams.get('walletAddress') || '';
+    const searchKeyword = searchParams.get('searchKeyword') || '';
     const cardTypeParam = searchParams.get('cardType') || '';
     const cardStatus = searchParams.get('cardStatus');
     const kycStatus = searchParams.get('kycStatus');
@@ -56,10 +56,19 @@ export async function GET(request: NextRequest) {
     // 构建查询条件
     const where: any = {};
 
-    if (walletAddress) {
-      where.wallet = {
-        contains: walletAddress,
-      };
+    if (searchKeyword) {
+      where.OR = [
+        {
+          wallet: {
+            contains: searchKeyword,
+          },
+        },
+        {
+          cardNo: {
+            contains: searchKeyword,
+          },
+        },
+      ];
     }
 
     if (cardTypeParam) {
