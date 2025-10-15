@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
     // 调用外部API
     try {
       const externalApiUrl = action === 'approve'
-        ? 'http://ucard_go_api:9291/v1/card/approval'
-        : 'http://ucard_go_api:9291/v1/card/reject';
+        ? 'http://ucard_go_api:9091/v1/card/approval'
+        : 'http://ucard_go_api:9091/v1/card/reject';
 
       let requestBody: any;
 
@@ -128,6 +128,9 @@ export async function POST(request: NextRequest) {
         };
       }
 
+      console.log('调用外部API:', externalApiUrl);
+      console.log('请求体:', JSON.stringify(requestBody, null, 2));
+
       const externalResponse = await fetch(externalApiUrl, {
         method: 'POST',
         headers: {
@@ -135,6 +138,8 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify(requestBody),
       });
+
+      console.log('外部API响应状态:', externalResponse.status);
 
       if (!externalResponse.ok) {
         const errorData = await externalResponse.json().catch(() => ({}));
@@ -148,8 +153,16 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
+
+      const responseData = await externalResponse.json();
+      console.log('外部API响应数据:', responseData);
     } catch (error) {
       console.error('调用外部API异常:', error);
+      console.error('错误详情:', {
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : '未知错误',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return NextResponse.json(
         {
           success: false,
