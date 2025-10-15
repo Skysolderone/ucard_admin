@@ -30,6 +30,7 @@ import {
   MoreHorizontal,
   Menu,
   Users,
+  Settings,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card"
@@ -75,6 +76,8 @@ import {
   Cell,
 } from "recharts"
 import CardUsersList from "./components/card-users-list"
+import KycDataList from "./components/kyc-data-list"
+import SystemConfigList from "./components/system-config-list"
 
 interface CardStats {
   totalCards: number
@@ -1038,6 +1041,18 @@ export default function Dashboard() {
     </>
   )
 
+  const renderKycData = () => (
+    <>
+      <KycDataList />
+    </>
+  )
+
+  const renderSystemConfig = () => (
+    <>
+      <SystemConfigList />
+    </>
+  )
+
   const renderBillingSystem = () => (
     <>
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -1479,6 +1494,20 @@ export default function Dashboard() {
               <CreditCard className="mr-3 h-5 w-5" />
               开卡数据
             </button>
+            <button
+              onClick={() => setActiveSection("kyc-data")}
+              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "kyc-data" ? "text-blue-600 bg-blue-50 border-l-4 border-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+            >
+              <Users className="mr-3 h-5 w-5" />
+              KYC数据
+            </button>
+            <button
+              onClick={() => setActiveSection("system-config")}
+              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "system-config" ? "text-blue-600 bg-blue-50 border-l-4 border-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+            >
+              <Settings className="mr-3 h-5 w-5" />
+              配置设置
+            </button>
             {/* <button
               onClick={() => setActiveSection("food-delivery")}
               className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "food-delivery" ? "text-blue-600 bg-blue-50 border-l-4 border-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
@@ -1520,9 +1549,13 @@ export default function Dashboard() {
                         ? "Customer Review"
                         : activeSection === "billing"
                           ? "开卡数据"
-                          : activeSection === "food-delivery"
-                            ? "Food Delivery"
-                            : "Premium Version"}
+                          : activeSection === "kyc-data"
+                            ? "KYC数据"
+                            : activeSection === "system-config"
+                              ? "配置设置"
+                              : activeSection === "food-delivery"
+                                ? "Food Delivery"
+                                : "Premium Version"}
             </h1>
           </div>
           <div className="flex items-center space-x-4">
@@ -1612,8 +1645,10 @@ export default function Dashboard() {
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
           {activeSection === "dashboard" && renderDashboard()}
           {activeSection === "billing" && renderBillingSystem()}
+          {activeSection === "kyc-data" && renderKycData()}
+          {activeSection === "system-config" && renderSystemConfig()}
           {activeSection === "food-delivery" && renderFoodDelivery()}
-          {activeSection !== "dashboard" && activeSection !== "billing" && activeSection !== "food-delivery" && (
+          {activeSection !== "dashboard" && activeSection !== "billing" && activeSection !== "kyc-data" && activeSection !== "system-config" && activeSection !== "food-delivery" && (
             <div className="flex items-center justify-center h-full">
               <Card className="w-full max-w-md">
                 <CardHeader>
