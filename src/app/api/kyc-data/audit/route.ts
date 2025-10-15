@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
     // 调用外部API
     try {
       const externalApiUrl = action === 'approve'
-        ? 'http://ucard_go_api:9091/v1/card/approval'
-        : 'http://ucard_go_api:9091/v1/card/reject';
+        ? 'http://ucard-api:9091/v1/card/approval'
+        : 'http://ucard-api:9091/v1/card/reject';
 
       let requestBody: any;
 
