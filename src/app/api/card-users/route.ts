@@ -75,8 +75,15 @@ export async function GET(request: NextRequest) {
       where.cardType = cardTypeParam;
     }
 
+    // 如果卡片状态选择的是"未开卡"(3)，则查询 kyc_status=0 的记录
     if (cardStatus !== null && cardStatus !== '') {
-      where.status = parseInt(cardStatus);
+      const cardStatusValue = parseInt(cardStatus);
+      if (cardStatusValue === 3) {
+        // 未开卡状态：查询 kyc_status=0 的记录
+        where.kycStatus = 0;
+      } else {
+        where.status = cardStatusValue;
+      }
     }
 
     if (kycStatus !== null && kycStatus !== '') {
