@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 // 获取KYC状态文本
 function getKycStatusText(status: number | null | undefined): string {
@@ -71,12 +72,9 @@ export async function GET(request: NextRequest) {
     const totalPages = Math.ceil(total / limit);
     const skip = (page - 1) * limit;
 
-    // 查询KYC审核记录数据并关联KYC信息
+    // 先查询KYC审核记录（不包含关联）
     const kycAudingRecords = await prisma.kycAuding.findMany({
       where,
-      include: {
-        kycInfo: true, // 关联查询kyc_info表
-      },
       orderBy: [
         {
           createdAt: 'desc',
@@ -86,9 +84,76 @@ export async function GET(request: NextRequest) {
       take: limit,
     });
 
+    // 获取所有需要的 kycInfoId
+    const kycInfoIds = kycAudingRecords
+      .filter(record => record.kycInfoId)
+      .map(record => record.kycInfoId as number);
+
+    // 使用原始查询获取 KYC 信息，避免日期解析问题
+    let kycInfosRaw: any[] = [];
+    if (kycInfoIds.length > 0) {
+      // 构建安全的 IN 查询
+      const placeholders = kycInfoIds.map(() => '?').join(',');
+      kycInfosRaw = await prisma.$queryRawUnsafe<any[]>(`
+        SELECT
+          id,
+          wallet,
+          first_name,
+          last_name,
+          email,
+          mobile,
+          mobile_prefix,
+          CASE
+            WHEN date_of_birth IS NULL OR date_of_birth = '0000-00-00 00:00:00' THEN NULL
+            ELSE date_of_birth
+          END as date_of_birth,
+          cert_type,
+          portrait,
+          reverse_side,
+          nationality_country_code,
+          post_code,
+          country,
+          state,
+          city,
+          address,
+          created_at,
+          updated_at,
+          remark
+        FROM t_kyc_info
+        WHERE id IN (${placeholders})
+      `, ...kycInfoIds);
+    }
+
+    // 创建 kycInfo 映射
+    const kycInfoMap = new Map();
+    kycInfosRaw.forEach((info: any) => {
+      kycInfoMap.set(info.id, {
+        id: info.id,
+        wallet: info.wallet,
+        firstName: info.first_name,
+        lastName: info.last_name,
+        email: info.email,
+        mobile: info.mobile,
+        mobilePrefix: info.mobile_prefix,
+        dateOfBirth: info.date_of_birth,
+        certType: info.cert_type,
+        portrait: info.portrait,
+        reverseSide: info.reverse_side,
+        nationalityCountryCode: info.nationality_country_code,
+        postCode: info.post_code,
+        country: info.country,
+        state: info.state,
+        city: info.city,
+        address: info.address,
+        createdAt: info.created_at,
+        updatedAt: info.updated_at,
+        remark: info.remark,
+      });
+    });
+
     // 转换数据格式以匹配前端期望
     const formattedData = kycAudingRecords.map((record: any) => {
-      const kycInfo = record.kycInfo;
+      const kycInfo = record.kycInfoId ? kycInfoMap.get(record.kycInfoId) : null;
 
       // 拼接姓名
       let fullName = '未填写';
