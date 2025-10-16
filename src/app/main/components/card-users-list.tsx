@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   ShieldX,
   RotateCcw,
+  Receipt,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -75,6 +76,27 @@ interface Pagination {
   totalPages: number
 }
 
+interface Transaction {
+  id: string
+  tradeType: string
+  tradeTypeText: string
+  amount: number
+  settlementFee: number
+  settlementFunds: number
+  status: number
+  statusText: string
+  transferId: string
+  transerHash: string
+  cardType: string
+  createdAt: string
+  remark: string
+}
+
+interface TransactionsData {
+  transactions: Transaction[]
+  total: number
+}
+
 export default function CardUsersList() {
   const [cardUsers, setCardUsers] = useState<CardUser[]>([])
   const [loading, setLoading] = useState(true)
@@ -99,6 +121,12 @@ export default function CardUsersList() {
     startDate: '',
     endDate: '',
   })
+
+  // 交易明细相关状态
+  const [transactionsDialogOpen, setTransactionsDialogOpen] = useState(false)
+  const [currentTransactions, setCurrentTransactions] = useState<TransactionsData | null>(null)
+  const [transactionsLoading, setTransactionsLoading] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<CardUser | null>(null)
 
   const { toast } = useToast()
 
@@ -188,6 +216,51 @@ export default function CardUsersList() {
     // 重置后立即刷新数据
     setPagination(prev => ({ ...prev, page: 1 }))
     fetchCardUsers(1, emptyFilters)
+  }
+
+  // 获取交易明细
+  const fetchTransactions = async (user: CardUser) => {
+    if (!user.cardId) {
+      toast({
+        title: "无法获取交易明细",
+        description: "该用户缺少卡片ID",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setTransactionsLoading(true)
+    setSelectedUser(user)
+    setTransactionsDialogOpen(true)
+
+    try {
+      const params = new URLSearchParams({
+        cardId: user.cardId,
+        wallet: user.walletAddress,
+      })
+
+      const response = await fetch(`/api/card-users/transactions?${params}`)
+      const data = await response.json()
+
+      if (data.success) {
+        setCurrentTransactions(data.data)
+      } else {
+        toast({
+          title: "获取交易明细失败",
+          description: data.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('获取交易明细失败:', error)
+      toast({
+        title: "获取交易明细失败",
+        description: "网络错误，请稍后重试",
+        variant: "destructive",
+      })
+    } finally {
+      setTransactionsLoading(false)
+    }
   }
 
   // 获取卡片状态徽章组件
@@ -672,17 +745,19 @@ export default function CardUsersList() {
                         </div>
                       </TableCell>
                       <TableCell className="py-4">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl">
+                        <div className="flex items-center gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                title="查看详情"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
                             <DialogHeader>
                               <DialogTitle>用户详情</DialogTitle>
                               <DialogDescription>
@@ -793,6 +868,16 @@ export default function CardUsersList() {
                             </div>
                           </DialogContent>
                         </Dialog>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 hover:bg-green-50 dark:hover:bg-green-900/30 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+                          onClick={() => fetchTransactions(user)}
+                          title="查看交易明细"
+                        >
+                          <Receipt className="h-4 w-4" />
+                        </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -859,6 +944,88 @@ export default function CardUsersList() {
           </div>
         )}
       </div>
+
+      {/* 交易明细对话框 */}
+      <Dialog open={transactionsDialogOpen} onOpenChange={setTransactionsDialogOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
+          <DialogHeader>
+            <DialogTitle className="dark:text-gray-100">卡片交易明细</DialogTitle>
+            <DialogDescription className="dark:text-gray-400">
+              {selectedUser && `用户: ${selectedUser.fullName} | 钱包: ${selectedUser.walletAddress.substring(0, 10)}...`}
+            </DialogDescription>
+          </DialogHeader>
+
+          {transactionsLoading ? (
+            <div className="py-12 text-center">
+              <p className="text-gray-500 dark:text-gray-400">加载中...</p>
+            </div>
+          ) : currentTransactions && currentTransactions.transactions.length > 0 ? (
+            <div className="py-4">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50 dark:bg-gray-900/50 border-b dark:border-gray-700">
+                      <TableHead className="dark:text-gray-300">交易类型</TableHead>
+                      <TableHead className="dark:text-gray-300">金额</TableHead>
+                      <TableHead className="dark:text-gray-300">结算费用</TableHead>
+                      <TableHead className="dark:text-gray-300">结算资金</TableHead>
+                      <TableHead className="dark:text-gray-300">状态</TableHead>
+                      <TableHead className="dark:text-gray-300">交易哈希</TableHead>
+                      <TableHead className="dark:text-gray-300">时间</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentTransactions.transactions.map((tx, index) => (
+                      <TableRow key={tx.id} className={`${index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/20 dark:bg-gray-900/20'} dark:border-gray-700`}>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            tx.tradeType === 'deposit' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400' :
+                            tx.tradeType === 'withdraw' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400' :
+                            tx.tradeType === 'auth' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400' :
+                            'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400'
+                          }`}>
+                            {tx.tradeTypeText}
+                          </span>
+                        </TableCell>
+                        <TableCell className="font-medium dark:text-gray-100">${tx.amount.toFixed(2)}</TableCell>
+                        <TableCell className="dark:text-gray-300">${tx.settlementFee.toFixed(2)}</TableCell>
+                        <TableCell className="dark:text-gray-300">${tx.settlementFunds.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            tx.status === 1 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
+                            tx.status === 2 ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400' :
+                            'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
+                          }`}>
+                            {tx.statusText}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {tx.transerHash ? (
+                            <button
+                              className="font-mono text-xs max-w-[120px] truncate bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                              onClick={() => copyToClipboard(tx.transerHash, "交易哈希")}
+                              title={tx.transerHash}
+                            >
+                              {tx.transerHash}
+                            </button>
+                          ) : (
+                            <span className="text-gray-500 dark:text-gray-400 text-xs">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs dark:text-gray-400">{formatDate(tx.createdAt)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          ) : (
+            <div className="py-12 text-center">
+              <p className="text-gray-500 dark:text-gray-400">暂无交易记录</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
