@@ -970,7 +970,7 @@ export default function CardUsersList() {
                       <TableHead className="dark:text-gray-300">结算费用</TableHead>
                       <TableHead className="dark:text-gray-300">结算资金</TableHead>
                       <TableHead className="dark:text-gray-300">状态</TableHead>
-                      <TableHead className="dark:text-gray-300">交易哈希</TableHead>
+                      <TableHead className="dark:text-gray-300">交易ID</TableHead>
                       <TableHead className="dark:text-gray-300">时间</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -993,20 +993,21 @@ export default function CardUsersList() {
                         <TableCell>
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
                             tx.status === 1 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
-                            tx.status === 2 ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400' :
+                            tx.status === 2 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400' :
+                            tx.status === 3 ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400' :
                             'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                           }`}>
                             {tx.statusText}
                           </span>
                         </TableCell>
                         <TableCell>
-                          {tx.transerHash ? (
+                          {tx.transferId ? (
                             <button
                               className="font-mono text-xs max-w-[120px] truncate bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
-                              onClick={() => copyToClipboard(tx.transerHash, "交易哈希")}
-                              title={tx.transerHash}
+                              onClick={() => copyToClipboard(tx.transferId, "交易ID")}
+                              title={tx.transferId}
                             >
-                              {tx.transerHash}
+                              {tx.transferId}
                             </button>
                           ) : (
                             <span className="text-gray-500 dark:text-gray-400 text-xs">-</span>

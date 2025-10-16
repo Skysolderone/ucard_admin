@@ -52,6 +52,7 @@ interface KycInfo {
   certType: string
   portrait: string
   reverseSide: string
+  person: string
   nationalityCountryCode: string
   postCode: string
   country: string
@@ -663,17 +664,17 @@ export default function KycDataList() {
                               {record.kycInfo && (
                                 <div>
                                   <div className="flex items-center gap-2 mb-3">
-                                    <ImageIcon className="h-5 w-5 text-purple-600" />
-                                    <h3 className="text-lg font-semibold">证件图片</h3>
+                                    <ImageIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                                    <h3 className="text-lg font-semibold dark:text-gray-100">证件图片</h3>
                                   </div>
-                                  <div className="p-4 bg-purple-50 rounded-lg">
+                                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                                     <div className="grid grid-cols-2 gap-4">
                                       {/* 正面 */}
                                       <div>
-                                        <Label className="text-gray-600 mb-2 block">
+                                        <Label className="text-gray-600 dark:text-gray-400 mb-2 block">
                                           {getCertTypeText(record.kycInfo.certType) === '身份证' ? '身份证正面' : '护照'}
                                         </Label>
-                                        <div className="relative bg-white rounded-lg overflow-hidden border border-gray-200">
+                                        <div className="relative bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                                           <img
                                             src={record.kycInfo.portrait || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23f3f4f6"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="16"%3E暂无图片%3C/text%3E%3C/svg%3E'}
                                             alt="证件正面"
@@ -687,8 +688,8 @@ export default function KycDataList() {
                                       {/* 反面 */}
                                       {getCertTypeText(record.kycInfo.certType) === '身份证' && (
                                         <div>
-                                          <Label className="text-gray-600 mb-2 block">身份证反面</Label>
-                                          <div className="relative bg-white rounded-lg overflow-hidden border border-gray-200">
+                                          <Label className="text-gray-600 dark:text-gray-400 mb-2 block">身份证反面</Label>
+                                          <div className="relative bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
                                             <img
                                               src={record.kycInfo.reverseSide || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23f3f4f6"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="16"%3E暂无图片%3C/text%3E%3C/svg%3E'}
                                               alt="证件反面"
@@ -700,6 +701,32 @@ export default function KycDataList() {
                                           </div>
                                         </div>
                                       )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 自拍照 */}
+                              {record.kycInfo && record.kycInfo.person && (
+                                <div>
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                    <h3 className="text-lg font-semibold dark:text-gray-100">自拍照</h3>
+                                  </div>
+                                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                    <div className="flex justify-center">
+                                      <div className="w-full max-w-md">
+                                        <div className="relative bg-white dark:bg-gray-800 rounded-lg overflow-hidden border-2 border-blue-200 dark:border-blue-800">
+                                          <img
+                                            src={record.kycInfo.person}
+                                            alt="自拍照"
+                                            className="w-full h-auto max-h-96 object-contain"
+                                            onError={(e) => {
+                                              e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect width="400" height="400" fill="%23f3f4f6"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="16"%3E图片加载失败%3C/text%3E%3C/svg%3E'
+                                            }}
+                                          />
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>

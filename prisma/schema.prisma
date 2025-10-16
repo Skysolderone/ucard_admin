@@ -62,9 +62,6 @@ model KycAuding {
   remark       String?   @db.VarChar(255)
   kycInfoId    Int?      @map("kyc_info_id")
 
-  // 关联 KYC 信息
-  kycInfo      KycInfo?  @relation(fields: [kycInfoId], references: [id])
-
   @@index([wallet, kycStatus], map: "idx_kyc_auding_wallet_kyc_status")
   @@index([wallet, createdAt], map: "idx_kyc_auding_wallet_created_at")
   @@map("t_kyc_auding")
@@ -78,7 +75,7 @@ model KycInfo {
   email                  String?   @db.VarChar(50)
   mobile                 String?   @db.VarChar(11)
   mobilePrefix           String?   @map("mobile_prefix") @db.VarChar(4)
-  dateOfBirth            DateTime? @map("date_of_birth") @db.Timestamp(0)
+  dateOfBirth            DateTime? @map("date_of_birth") @db.Date
   certType               String?   @map("cert_type") @db.VarChar(20)
   portrait               String?   @db.VarChar(300)
   reverseSide            String?   @map("reverse_side") @db.VarChar(300)
@@ -91,9 +88,7 @@ model KycInfo {
   createdAt              DateTime? @map("created_at") @db.Timestamp(0)
   updatedAt              DateTime? @map("updated_at") @db.Timestamp(0)
   remark                 String?   @db.VarChar(255)
-
-  // 关联审核记录
-  audingRecords          KycAuding[]
+  person                 String?   @db.VarChar(255)
 
   @@map("t_kyc_info")
 }
@@ -245,7 +240,7 @@ model t_transaction_flow {
   txn_type      String    @db.VarChar(32)
   txn_amount    Decimal   @db.Decimal(20, 2)
   balance_after Decimal   @db.Decimal(20, 2)
-  reference_id  String?   @db.VarChar(64)
+  reference_id  String?   @db.VarChar(255)
   currency      String?   @default("USDT") @db.VarChar(16)
   remark        String?   @db.VarChar(255)
   created_at    DateTime? @default(now()) @db.DateTime(0)
