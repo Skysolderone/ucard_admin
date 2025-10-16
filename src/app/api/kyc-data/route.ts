@@ -103,10 +103,7 @@ export async function GET(request: NextRequest) {
           email,
           mobile,
           mobile_prefix,
-          CASE
-            WHEN date_of_birth IS NULL OR date_of_birth = '0000-00-00 00:00:00' THEN NULL
-            ELSE date_of_birth
-          END as date_of_birth,
+          DATE_FORMAT(date_of_birth, '%Y-%m-%d') as date_of_birth_str,
           cert_type,
           portrait,
           reverse_side,
@@ -116,13 +113,26 @@ export async function GET(request: NextRequest) {
           state,
           city,
           address,
-          created_at,
-          updated_at,
+          DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') as created_at_str,
+          DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s') as updated_at_str,
           remark
         FROM t_kyc_info
         WHERE id IN (${placeholders})
       `, ...kycInfoIds);
     }
+
+    // 辅助函数：将字符串日期转换为 Date 对象，过滤无效日期
+    const parseDate = (dateStr: string | null): Date | null => {
+      if (!dateStr || dateStr.startsWith('0000-00-00')) {
+        return null;
+      }
+      try {
+        const date = new Date(dateStr);
+        return isNaN(date.getTime()) ? null : date;
+      } catch {
+        return null;
+      }
+    };
 
     // 创建 kycInfo 映射 - 使用 Number 类型确保一致性
     const kycInfoMap = new Map();
@@ -137,7 +147,7 @@ export async function GET(request: NextRequest) {
         email: info.email,
         mobile: info.mobile,
         mobilePrefix: info.mobile_prefix,
-        dateOfBirth: info.date_of_birth,
+        dateOfBirth: parseDate(info.date_of_birth_str),
         certType: info.cert_type,
         portrait: info.portrait,
         reverseSide: info.reverse_side,
@@ -147,8 +157,8 @@ export async function GET(request: NextRequest) {
         state: info.state,
         city: info.city,
         address: info.address,
-        createdAt: info.created_at,
-        updatedAt: info.updated_at,
+        createdAt: parseDate(info.created_at_str),
+        updatedAt: parseDate(info.updated_at_str),
         remark: info.remark,
       });
     });
