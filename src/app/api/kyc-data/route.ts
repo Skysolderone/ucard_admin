@@ -124,11 +124,13 @@ export async function GET(request: NextRequest) {
       `, ...kycInfoIds);
     }
 
-    // 创建 kycInfo 映射
+    // 创建 kycInfo 映射 - 使用 Number 类型确保一致性
     const kycInfoMap = new Map();
     kycInfosRaw.forEach((info: any) => {
-      kycInfoMap.set(info.id, {
-        id: info.id,
+      // 确保 ID 是数字类型
+      const infoId = typeof info.id === 'bigint' ? Number(info.id) : Number(info.id);
+      kycInfoMap.set(infoId, {
+        id: infoId,
         wallet: info.wallet,
         firstName: info.first_name,
         lastName: info.last_name,
@@ -151,9 +153,19 @@ export async function GET(request: NextRequest) {
       });
     });
 
+    console.log('kycInfoIds:', kycInfoIds);
+    console.log('kycInfosRaw count:', kycInfosRaw.length);
+    console.log('kycInfoMap keys:', Array.from(kycInfoMap.keys()));
+
     // 转换数据格式以匹配前端期望
     const formattedData = kycAudingRecords.map((record: any) => {
-      const kycInfo = record.kycInfoId ? kycInfoMap.get(record.kycInfoId) : null;
+      // 确保 kycInfoId 转换为数字类型进行查找
+      const lookupId = record.kycInfoId ? Number(record.kycInfoId) : null;
+      const kycInfo = lookupId ? kycInfoMap.get(lookupId) : null;
+
+      if (lookupId && !kycInfo) {
+        console.log('找不到 kycInfo:', lookupId, 'record.kycInfoId:', record.kycInfoId, 'type:', typeof record.kycInfoId);
+      }
 
       // 拼接姓名
       let fullName = '未填写';
