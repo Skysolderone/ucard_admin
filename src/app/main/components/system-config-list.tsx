@@ -273,8 +273,8 @@ export default function SystemConfigList() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <Settings className="h-5 w-5 text-gray-600" />
-                <Label className="text-lg font-semibold">Card Admin 配置管理</Label>
+                <Settings className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                <Label className="text-lg font-semibold dark:text-gray-200">Card Admin 配置管理</Label>
               </div>
             </div>
             <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
@@ -316,10 +316,10 @@ export default function SystemConfigList() {
                       value={newConfig.status.toString()}
                       onValueChange={(value) => setNewConfig({ ...newConfig, status: parseInt(value) })}
                     >
-                      <SelectTrigger className="bg-white border-gray-300">
+                      <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                      <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                         <SelectItem value="1">启用</SelectItem>
                         <SelectItem value="0">禁用</SelectItem>
                       </SelectContent>
@@ -357,21 +357,21 @@ export default function SystemConfigList() {
       </Card>
 
       {/* 数据表格 */}
-      <Card className="shadow-sm border-0 ring-1 ring-gray-200">
+      <Card className="shadow-sm border-0 ring-1 ring-gray-200 dark:ring-gray-700 dark:bg-gray-800">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-gray-50/50 border-b border-gray-200">
-                  <TableHead className="font-semibold text-gray-700 py-4 w-16">ID</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">系统类型</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">配置键</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">配置值</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">状态</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">更新人</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">更新时间</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">备注</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">操作</TableHead>
+                <TableRow className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4 w-16">ID</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">系统类型</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">配置键</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">配置值</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">状态</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">更新人</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">更新时间</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">备注</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -391,20 +391,20 @@ export default function SystemConfigList() {
                   configs.map((config, index) => (
                     <TableRow
                       key={config.id}
-                      className={`transition-colors hover:bg-gray-50/50 border-b border-gray-100 ${
-                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'
+                      className={`transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 ${
+                        index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/20 dark:bg-gray-900/20'
                       }`}
                     >
                       <TableCell className="py-4">
-                        <div className="font-medium text-gray-600 text-center">
+                        <div className="font-medium text-gray-600 dark:text-gray-400 text-center">
                           {config.id}
                         </div>
                       </TableCell>
                       <TableCell className="py-4">
-                        <span className="font-medium text-blue-600">{config.systemType}</span>
+                        <span className="font-medium text-blue-600 dark:text-blue-400">{config.systemType}</span>
                       </TableCell>
                       <TableCell className="py-4">
-                        <span className="font-mono text-sm text-gray-700">{config.configKey}</span>
+                        <span className="font-mono text-sm text-gray-700 dark:text-gray-300">{config.configKey}</span>
                       </TableCell>
                       <TableCell className="py-4">
                         {editingId === config.id ? (
@@ -423,10 +423,10 @@ export default function SystemConfigList() {
                             value={editStatus.toString()}
                             onValueChange={(value) => setEditStatus(parseInt(value))}
                           >
-                            <SelectTrigger className="w-24 bg-white border-gray-300">
+                            <SelectTrigger className="w-24 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                            <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                               <SelectItem value="1">启用</SelectItem>
                               <SelectItem value="0">禁用</SelectItem>
                             </SelectContent>
@@ -434,18 +434,18 @@ export default function SystemConfigList() {
                         ) : (
                           <span className={`px-2 py-1 rounded text-xs ${
                             config.status === 1
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                           }`}>
                             {config.status === 1 ? '启用' : '禁用'}
                           </span>
                         )}
                       </TableCell>
                       <TableCell className="py-4">
-                        <span className="text-sm text-gray-600">{config.updater || '-'}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{config.updater || '-'}</span>
                       </TableCell>
                       <TableCell className="py-4">
-                        <div className="text-xs text-gray-600">
+                        <div className="text-xs text-gray-600 dark:text-gray-400">
                           {formatDate(config.updatedAt)}
                         </div>
                       </TableCell>
@@ -458,7 +458,7 @@ export default function SystemConfigList() {
                             className="w-full"
                           />
                         ) : (
-                          <span className="text-sm text-gray-600">{config.remark || '-'}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{config.remark || '-'}</span>
                         )}
                       </TableCell>
                       <TableCell className="py-4">

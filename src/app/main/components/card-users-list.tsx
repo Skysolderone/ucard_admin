@@ -133,12 +133,12 @@ export default function CardUsersList() {
   }
 
   // 获取开卡用户列表
-  const fetchCardUsers = useCallback(async (page = 1, customFilters = filters) => {
+  const fetchCardUsers = useCallback(async (page = 1, customFilters = filters, customLimit?: number) => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: pagination.limit.toString(),
+        limit: (customLimit || pagination.limit).toString(),
         ...customFilters,
       })
 
@@ -296,6 +296,10 @@ export default function CardUsersList() {
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString)
+      // 检查日期是否有效
+      if (isNaN(date.getTime())) {
+        return dateString // 如果日期无效（如"未提交"），直接返回原字符串
+      }
       return date.toLocaleString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
@@ -349,10 +353,10 @@ export default function CardUsersList() {
                     fetchCardUsers(1, newFilters)
                   }}
                 >
-                  <SelectTrigger className="bg-white border-gray-300">
+                  <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                     <SelectValue placeholder="选择类型" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                     <SelectItem value="all">全部</SelectItem>
                     {filterOptions.cardTypes.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
@@ -375,10 +379,10 @@ export default function CardUsersList() {
                     fetchCardUsers(1, newFilters)
                   }}
                 >
-                  <SelectTrigger className="bg-white border-gray-300">
+                  <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                     <SelectValue placeholder="选择状态" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                     <SelectItem value="all">全部</SelectItem>
                     {filterOptions.cardStatuses.map((option) => (
                       <SelectItem key={option.value} value={option.value.toString()}>
@@ -401,10 +405,10 @@ export default function CardUsersList() {
                     fetchCardUsers(1, newFilters)
                   }}
                 >
-                  <SelectTrigger className="bg-white border-gray-300">
+                  <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                     <SelectValue placeholder="选择状态" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                     <SelectItem value="all">全部</SelectItem>
                     {filterOptions.kycStatuses.map((option) => (
                       <SelectItem key={option.value} value={option.value.toString()}>
@@ -461,29 +465,29 @@ export default function CardUsersList() {
         </Card>
 
       {/* 数据表格 */}
-      <Card className="shadow-sm border-0 ring-1 ring-gray-200">
+      <Card className="shadow-sm border-0 ring-1 ring-gray-200 dark:ring-gray-700 dark:bg-gray-800">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-gray-50/50 border-b border-gray-200">
-                  <TableHead className="font-semibold text-gray-700 py-4 w-16">序号</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">姓名</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">钱包地址</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">支付哈希</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">开卡类型</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">卡片状态</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">KYC状态</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">卡余额</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">累计充值</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">累计消费</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">累计提现</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">累计退款</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">卡号</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">有效期</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">逻辑开卡时间</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">真实开卡时间</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">操作</TableHead>
+                <TableRow className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4 w-16">序号</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">姓名</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">钱包地址</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">支付哈希</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">开卡类型</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">卡片状态</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">KYC状态</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">卡余额</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">累计充值</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">累计消费</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">累计提现</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">累计退款</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">卡号</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">有效期</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">逻辑开卡时间</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">真实开卡时间</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -503,17 +507,17 @@ export default function CardUsersList() {
                   cardUsers.map((user, index) => (
                     <TableRow
                       key={user.id}
-                      className={`transition-colors hover:bg-gray-50/50 border-b border-gray-100 ${
-                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'
+                      className={`transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 ${
+                        index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/20 dark:bg-gray-900/20'
                       }`}
                     >
                       <TableCell className="py-4">
-                        <div className="font-medium text-gray-600 text-center">
+                        <div className="font-medium text-gray-600 dark:text-gray-400 text-center">
                           {user.id}
                         </div>
                       </TableCell>
                       <TableCell className="py-4">
-                        <div className="font-medium text-gray-900">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
                           {user.fullName || '未填写'}
                         </div>
                       </TableCell>
@@ -521,7 +525,7 @@ export default function CardUsersList() {
                         <Dialog>
                           <DialogTrigger asChild>
                             <button
-                              className="font-mono text-xs max-w-[120px] truncate bg-gray-100 px-2 py-1 rounded text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer text-left"
+                              className="font-mono text-xs max-w-[120px] truncate bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer text-left"
                               title="点击查看完整地址"
                             >
                               {user.walletAddress}
@@ -535,8 +539,8 @@ export default function CardUsersList() {
                               </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 py-4">
-                              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                <p className="font-mono text-sm break-all text-gray-900">
+                              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <p className="font-mono text-sm break-all text-gray-900 dark:text-gray-100">
                                   {user.walletAddress}
                                 </p>
                               </div>
@@ -555,7 +559,7 @@ export default function CardUsersList() {
                           <Dialog>
                             <DialogTrigger asChild>
                               <button
-                                className="font-mono text-xs max-w-[120px] truncate bg-blue-50 px-2 py-1 rounded text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer text-left"
+                                className="font-mono text-xs max-w-[120px] truncate bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors cursor-pointer text-left"
                                 title="点击查看完整哈希"
                               >
                                 {user.paymentHash}
@@ -569,8 +573,8 @@ export default function CardUsersList() {
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4 py-4">
-                                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                  <p className="font-mono text-sm break-all text-gray-900">
+                                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                  <p className="font-mono text-sm break-all text-gray-900 dark:text-gray-100">
                                     {user.paymentHash}
                                   </p>
                                 </div>
@@ -584,7 +588,7 @@ export default function CardUsersList() {
                             </DialogContent>
                           </Dialog>
                         ) : (
-                          <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded text-gray-500">
+                          <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-500 dark:text-gray-400">
                             未填写
                           </span>
                         )}
@@ -618,7 +622,7 @@ export default function CardUsersList() {
                           <Dialog>
                             <DialogTrigger asChild>
                               <button
-                                className="font-mono text-sm bg-gray-100 px-2 py-1 rounded text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer"
+                                className="font-mono text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer"
                                 title="点击查看完整卡号"
                               >
                                 {user.cardNumber}
@@ -632,8 +636,8 @@ export default function CardUsersList() {
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="space-y-4 py-4">
-                                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                  <p className="font-mono text-sm break-all text-gray-900">
+                                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                  <p className="font-mono text-sm break-all text-gray-900 dark:text-gray-100">
                                     {user.cardNumber}
                                   </p>
                                 </div>
@@ -647,23 +651,23 @@ export default function CardUsersList() {
                             </DialogContent>
                           </Dialog>
                         ) : (
-                          <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded text-gray-500">
+                          <span className="font-mono text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-500 dark:text-gray-400">
                             未获取
                           </span>
                         )}
                       </TableCell>
                       <TableCell className="py-4">
-                        <span className="font-mono text-sm text-gray-600">
+                        <span className="font-mono text-sm text-gray-600 dark:text-gray-400">
                           {user.expiryDate || '未获取'}
                         </span>
                       </TableCell>
                       <TableCell className="py-4">
-                        <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">
                           {formatDate(user.logicalCardTime)}
                         </div>
                       </TableCell>
                       <TableCell className="py-4">
-                        <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">
                           {user.realCardTime ? formatDate(user.realCardTime) : '未完成'}
                         </div>
                       </TableCell>
@@ -802,34 +806,34 @@ export default function CardUsersList() {
       {/* 分页 */}
       <div className="flex items-center justify-end gap-6">
         <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             共 {pagination.total} 条记录，第 {pagination.page} / {pagination.totalPages} 页
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">每页显示</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">每页显示</span>
             <Select
               value={pagination.limit.toString()}
               onValueChange={(value) => {
                 const newLimit = parseInt(value)
-                const newPagination = { 
-                  ...pagination, 
-                  limit: newLimit, 
-                  page: 1 
+                const newPagination = {
+                  ...pagination,
+                  limit: newLimit,
+                  page: 1
                 }
                 setPagination(newPagination)
-                fetchCardUsers(1, filters)
+                fetchCardUsers(1, filters, newLimit)
               }}
             >
-              <SelectTrigger className="w-20 h-8 bg-white border-gray-300">
+              <SelectTrigger className="w-20 h-8 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg">
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 <SelectItem value="20">20</SelectItem>
                 <SelectItem value="50">50</SelectItem>
                 <SelectItem value="100">100</SelectItem>
               </SelectContent>
             </Select>
-            <span className="text-sm text-gray-500">条</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">条</span>
           </div>
         </div>
         {pagination.totalPages > 1 && (

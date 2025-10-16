@@ -101,15 +101,15 @@ export async function GET(request: NextRequest) {
     const totalPages = Math.ceil(total / limit);
     const skip = (page - 1) * limit;
 
-    // 查询数据 - 按真实开卡时间（updatedAt）降序排列
+    // 查询数据 - 按逻辑开卡时间（createdAt）降序排列
     const cardInfos = await prisma.cardInfo.findMany({
       where,
       orderBy: [
         {
-          updatedAt: 'desc', // 优先按真实开卡时间降序
+          createdAt: 'desc', // 优先按逻辑开卡时间降序
         },
         {
-          createdAt: 'desc', // 如果 updatedAt 相同或为 null，则按创建时间降序
+          updatedAt: 'desc', // 如果 createdAt 相同或为 null，则按真实开卡时间降序
         },
       ],
       skip,
@@ -226,6 +226,12 @@ export async function GET(request: NextRequest) {
       const transactionKey = `${card.wallet}_${card.cardId}`;
       const transactions = transactionMap.get(transactionKey);
 
+      // 如果 KYC 状态是未提交(0)，则卡片状态应该显示为未开卡(3)
+      const actualCardStatus = (card.kycStatus === 0) ? 3 : (card.status || 0);
+
+      // 如果 KYC 状态是未提交(0)，真实开卡时间显示为"未提交"
+      const actualRealCardTime = (card.kycStatus === 0) ? '未提交' : (card.updatedAt?.toISOString() || null);
+
       return {
         id: card.id.toString(), // 使用数据库自增 ID
         cardId: card.cardId || '', // 业务卡片 ID
@@ -235,8 +241,8 @@ export async function GET(request: NextRequest) {
         fullName: fullName,
         paymentHash: card.transferHash || '', // 支付哈希来自 transfer_hash 字段
         cardType: getCardTypeText(card.cardType),
-        cardStatus: card.status || 0,
-        cardStatusText: getCardStatusText(card.status),
+        cardStatus: actualCardStatus,
+        cardStatusText: getCardStatusText(actualCardStatus),
         kycStatus: card.kycStatus || 0,
         kycStatusText: getKycStatusText(card.kycStatus),
         cardBalance: Number(card.cardAmount || 0),
@@ -247,7 +253,7 @@ export async function GET(request: NextRequest) {
         cardNumber: card.cardNo || null,
         expiryDate: card.expeireTime || null,
         logicalCardTime: card.createdAt?.toISOString() || new Date().toISOString(),
-        realCardTime: card.updatedAt?.toISOString() || null,
+        realCardTime: actualRealCardTime,
         createdAt: card.createdAt?.toISOString() || new Date().toISOString(),
         updatedAt: card.updatedAt?.toISOString() || new Date().toISOString(),
       };

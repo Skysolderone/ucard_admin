@@ -463,16 +463,16 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">API服务</span>
-              <span className="px-2 py-1 bg-green-100 text-green-600 rounded text-xs">正常运行</span>
+              <span className="text-sm font-medium dark:text-gray-300">API服务</span>
+              <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs">正常运行</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">数据库连接</span>
-              <span className="px-2 py-1 bg-green-100 text-green-600 rounded text-xs">正常连接</span>
+              <span className="text-sm font-medium dark:text-gray-300">数据库连接</span>
+              <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs">正常连接</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">数据同步</span>
-              <span className="px-2 py-1 bg-green-100 text-green-600 rounded text-xs">实时同步</span>
+              <span className="text-sm font-medium dark:text-gray-300">数据同步</span>
+              <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs">实时同步</span>
             </div>
           </CardContent>
         </Card>
@@ -1423,13 +1423,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       {/* Mobile Sidebar Toggle */}
       {isMobile && (
         <Button
           variant="outline"
           size="icon"
-          className="fixed bottom-4 right-4 z-50 rounded-full h-12 w-12 shadow-lg bg-white"
+          className="fixed bottom-4 right-4 z-50 rounded-full h-12 w-12 shadow-lg bg-white dark:bg-gray-800"
           onClick={() => setSidebarOpen(true)}
         >
           <Menu className="h-6 w-6" />
@@ -1438,7 +1438,7 @@ export default function Dashboard() {
 
       {/* Sidebar */}
       <div
-        className={`${isMobile ? "fixed inset-0 z-50 transform transition-transform duration-300 ease-in-out" : "w-64"} ${isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"} bg-white border-r border-gray-200 flex flex-col`}
+        className={`${isMobile ? "fixed inset-0 z-50 transform transition-transform duration-300 ease-in-out" : "w-64"} ${isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"} bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col`}
       >
         {isMobile && (
           <div className="flex justify-end p-4">
@@ -1447,14 +1447,14 @@ export default function Dashboard() {
             </Button>
           </div>
         )}
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-2xl font-semibold text-purple-600">Ucard Admin</h1>
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h1 className="text-2xl font-semibold text-purple-600 dark:text-purple-400">Ucard Admin</h1>
         </div>
         <div className="flex-1 py-4 overflow-y-auto">
           <nav className="space-y-1 px-2">
             <button
               onClick={() => setActiveSection("dashboard")}
-              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "dashboard" ? "text-blue-600 bg-blue-50 border-l-4 border-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "dashboard" ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-600" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200"}`}
             >
               <BarChart className="mr-3 h-5 w-5" />
               Dashboard
@@ -1489,21 +1489,21 @@ export default function Dashboard() {
             </button> */}
             <button
               onClick={() => setActiveSection("billing")}
-              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "billing" ? "text-blue-600 bg-blue-50 border-l-4 border-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "billing" ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-600" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200"}`}
             >
               <CreditCard className="mr-3 h-5 w-5" />
               开卡数据
             </button>
             <button
               onClick={() => setActiveSection("kyc-data")}
-              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "kyc-data" ? "text-blue-600 bg-blue-50 border-l-4 border-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "kyc-data" ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-600" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200"}`}
             >
               <Users className="mr-3 h-5 w-5" />
               KYC数据
             </button>
             <button
               onClick={() => setActiveSection("system-config")}
-              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "system-config" ? "text-blue-600 bg-blue-50 border-l-4 border-blue-600" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+              className={`flex items-center w-full px-4 py-3 text-sm font-medium rounded-r-md ${activeSection === "system-config" ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-600" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200"}`}
             >
               <Settings className="mr-3 h-5 w-5" />
               配置设置
@@ -1529,14 +1529,14 @@ export default function Dashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 flex items-center justify-between px-4 py-4 md:px-6">
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 py-4 md:px-6">
           <div className="flex items-center">
             {isMobile && (
               <Button variant="ghost" size="icon" className="mr-2" onClick={() => setSidebarOpen(true)}>
                 <Menu className="h-5 w-5" />
               </Button>
             )}
-            <h1 className="text-xl font-semibold text-gray-800">
+            <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
               {activeSection === "dashboard"
                 ? "Dashboard"
                 : activeSection === "check-in-out"
@@ -1642,7 +1642,7 @@ export default function Dashboard() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-900">
           {activeSection === "dashboard" && renderDashboard()}
           {activeSection === "billing" && renderBillingSystem()}
           {activeSection === "kyc-data" && renderKycData()}

@@ -150,12 +150,12 @@ export default function KycDataList() {
   }
 
   // 获取KYC数据列表
-  const fetchKycData = useCallback(async (page = 1, customFilters = filters) => {
+  const fetchKycData = useCallback(async (page = 1, customFilters = filters, customLimit?: number) => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        limit: pagination.limit.toString(),
+        limit: (customLimit || pagination.limit).toString(),
         ...customFilters,
       })
 
@@ -359,10 +359,10 @@ export default function KycDataList() {
                   fetchKycData(1, newFilters)
                 }}
               >
-                <SelectTrigger className="bg-white border-gray-300">
+                <SelectTrigger className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                   <SelectValue placeholder="选择状态" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg">
+                <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                   <SelectItem value="all">全部</SelectItem>
                   {filterOptions.kycStatuses.map((option) => (
                     <SelectItem key={option.value} value={option.value.toString()}>
@@ -418,21 +418,21 @@ export default function KycDataList() {
       </Card>
 
       {/* 数据表格 */}
-      <Card className="shadow-sm border-0 ring-1 ring-gray-200">
+      <Card className="shadow-sm border-0 ring-1 ring-gray-200 dark:ring-gray-700 dark:bg-gray-800">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-gray-50/50 border-b border-gray-200">
-                  <TableHead className="font-semibold text-gray-700 py-4 w-16">序号</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">钱包地址</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">姓名</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">卡号</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">持卡人ID</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">KYC状态</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">提交时间</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">审核时间</TableHead>
-                  <TableHead className="font-semibold text-gray-700 py-4">操作</TableHead>
+                <TableRow className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4 w-16">序号</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">钱包地址</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">姓名</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">卡号</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">持卡人ID</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">KYC状态</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">提交时间</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">审核时间</TableHead>
+                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -452,12 +452,12 @@ export default function KycDataList() {
                   kycData.map((record, index) => (
                     <TableRow
                       key={record.id}
-                      className={`transition-colors hover:bg-gray-50/50 border-b border-gray-100 ${
-                        index % 2 === 0 ? 'bg-white' : 'bg-gray-50/20'
+                      className={`transition-colors hover:bg-gray-50/50 dark:hover:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700 ${
+                        index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50/20 dark:bg-gray-900/20'
                       }`}
                     >
                       <TableCell className="py-4">
-                        <div className="font-medium text-gray-600 text-center">
+                        <div className="font-medium text-gray-600 dark:text-gray-400 text-center">
                           {record.id}
                         </div>
                       </TableCell>
@@ -465,7 +465,7 @@ export default function KycDataList() {
                         <Dialog>
                           <DialogTrigger asChild>
                             <button
-                              className="font-mono text-xs max-w-[120px] truncate bg-gray-100 px-2 py-1 rounded text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer text-left"
+                              className="font-mono text-xs max-w-[120px] truncate bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer text-left"
                               title="点击查看完整地址"
                             >
                               {record.wallet}
@@ -479,8 +479,8 @@ export default function KycDataList() {
                               </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 py-4">
-                              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                <p className="font-mono text-sm break-all text-gray-900">
+                              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <p className="font-mono text-sm break-all text-gray-900 dark:text-gray-100">
                                   {record.wallet}
                                 </p>
                               </div>
@@ -495,17 +495,17 @@ export default function KycDataList() {
                         </Dialog>
                       </TableCell>
                       <TableCell className="py-4">
-                        <div className="font-medium text-gray-900">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
                           {record.kycInfo?.fullName || '未填写'}
                         </div>
                       </TableCell>
                       <TableCell className="py-4">
-                        <span className="font-mono text-sm text-gray-600">
+                        <span className="font-mono text-sm text-gray-600 dark:text-gray-400">
                           {record.cardId || '未填写'}
                         </span>
                       </TableCell>
                       <TableCell className="py-4">
-                        <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">
+                        <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-600 dark:text-gray-400">
                           {record.cardHolderId || '未填写'}
                         </span>
                       </TableCell>
@@ -513,12 +513,12 @@ export default function KycDataList() {
                         {getKycStatusBadge(record.kycStatus, record.kycStatusText)}
                       </TableCell>
                       <TableCell className="py-4">
-                        <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">
                           {formatDate(record.createdAt)}
                         </div>
                       </TableCell>
                       <TableCell className="py-4">
-                        <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                        <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">
                           {formatDate(record.audingAt)}
                         </div>
                       </TableCell>
@@ -547,9 +547,9 @@ export default function KycDataList() {
                                   <FileText className="h-5 w-5 text-blue-600" />
                                   <h3 className="text-lg font-semibold">审核信息</h3>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                                   <div>
-                                    <Label className="text-gray-600">钱包地址</Label>
+                                    <Label className="text-gray-600 dark:text-gray-400">钱包地址</Label>
                                     <div className="mt-1 flex items-center gap-2">
                                       <p className="font-mono text-xs break-all flex-1">{record.wallet}</p>
                                       <Button
@@ -759,11 +759,11 @@ export default function KycDataList() {
       {/* 分页 */}
       <div className="flex items-center justify-end gap-6">
         <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
             共 {pagination.total} 条记录，第 {pagination.page} / {pagination.totalPages} 页
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">每页显示</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">每页显示</span>
             <Select
               value={pagination.limit.toString()}
               onValueChange={(value) => {
@@ -774,19 +774,19 @@ export default function KycDataList() {
                   page: 1
                 }
                 setPagination(newPagination)
-                fetchKycData(1, filters)
+                fetchKycData(1, filters, newLimit)
               }}
             >
-              <SelectTrigger className="w-20 h-8 bg-white border-gray-300">
+              <SelectTrigger className="w-20 h-8 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white border border-gray-200 shadow-lg">
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 <SelectItem value="20">20</SelectItem>
                 <SelectItem value="50">50</SelectItem>
                 <SelectItem value="100">100</SelectItem>
               </SelectContent>
             </Select>
-            <span className="text-sm text-gray-500">条</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">条</span>
           </div>
         </div>
         {pagination.totalPages > 1 && (
@@ -828,13 +828,13 @@ export default function KycDataList() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             {selectedRecord && (
-              <div className="p-4 bg-gray-50 rounded-lg space-y-2">
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">钱包地址:</span>
+                  <span className="text-gray-600 dark:text-gray-400">钱包地址:</span>
                   <span className="font-mono text-xs">{selectedRecord.wallet.slice(0, 10)}...{selectedRecord.wallet.slice(-8)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">姓名:</span>
+                  <span className="text-gray-600 dark:text-gray-400">姓名:</span>
                   <span>{selectedRecord.kycInfo?.fullName || '未填写'}</span>
                 </div>
               </div>
@@ -847,7 +847,7 @@ export default function KycDataList() {
                   value={auditReason}
                   onChange={(e) => setAuditReason(e.target.value)}
                   placeholder="请输入拒绝原因..."
-                  className="w-full mt-2 min-h-[100px] p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full mt-2 min-h-[100px] p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             )}
