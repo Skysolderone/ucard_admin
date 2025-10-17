@@ -932,15 +932,17 @@ export default function CardUsersList() {
                         >
                           <Receipt className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                          onClick={() => openDeleteDialog(user)}
-                          title="销卡"
-                        >
-                          <XCircle className="h-4 w-4" />
-                        </Button>
+                        {user.cardStatus !== 3 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                            onClick={() => openDeleteDialog(user)}
+                            title="销卡"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </Button>
+                        )}
                         
                         </div>
                       </TableCell>
