@@ -78,6 +78,8 @@ export async function GET(request: NextRequest) {
 
     // 如果卡片状态选择的是"未开卡"(4)，则查询 kyc_status=0 且 status!=3 的记录
     // 状态说明：1=正常, 2=冻结, 3=销卡, 4=未开卡
+    const isDeletedCardFilter = cardStatus === '3'; // 是否是销卡状态筛选
+    
     if (cardStatus !== null && cardStatus !== '') {
       const cardStatusValue = parseInt(cardStatus);
       if (cardStatusValue === 4) {
@@ -89,7 +91,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (kycStatus !== null && kycStatus !== '') {
+    // 销卡状态筛选时，不应用 kycStatus 条件
+    if (!isDeletedCardFilter && kycStatus !== null && kycStatus !== '') {
       where.kycStatus = parseInt(kycStatus);
     }
 
