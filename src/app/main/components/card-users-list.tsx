@@ -15,6 +15,7 @@ import {
   ShieldX,
   RotateCcw,
   Receipt,
+  XCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -128,6 +129,10 @@ export default function CardUsersList() {
   const [transactionsLoading, setTransactionsLoading] = useState(false)
   const [selectedUser, setSelectedUser] = useState<CardUser | null>(null)
 
+  // 销卡确认弹框状态
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState<CardUser | null>(null)
+
   const { toast } = useToast()
 
   // 复制到剪贴板
@@ -217,7 +222,52 @@ export default function CardUsersList() {
     setPagination(prev => ({ ...prev, page: 1 }))
     fetchCardUsers(1, emptyFilters)
   }
+  // 打开销卡确认弹框
+  const openDeleteDialog = (user: CardUser) => {
+    setUserToDelete(user)
+    setDeleteDialogOpen(true)
+  }
 
+  // 确认销卡
+  const confirmDeleteCard = async () => {
+    if (!userToDelete) return
+
+    if (!userToDelete.id) {
+      toast({
+        title: "无法销卡",
+        description: "该用户缺少用户ID",
+        variant: "destructive",
+      })
+      setDeleteDialogOpen(false)
+      return
+    }
+    try {
+      const response = await fetch(`/api/card-users/delete?id=${userToDelete.id}`)
+      const data = await response.json()
+      if (data.success) {
+        toast({
+          title: "销卡成功",
+          description: "卡片已成功销卡",
+        })
+        setDeleteDialogOpen(false)
+        setUserToDelete(null)
+        fetchCardUsers(1, filters)
+      } else {
+        toast({
+          title: "销卡失败",
+          description: data.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('销卡失败:', error)
+      toast({
+        title: "销卡失败",
+        description: "网络错误，请稍后重试",
+        variant: "destructive",
+      })
+    }
+  }
   // 获取交易明细
   const fetchTransactions = async (user: CardUser) => {
     if (!user.cardId) {
@@ -268,22 +318,27 @@ export default function CardUsersList() {
     const configs = {
       1: { // 正常
         icon: CheckCircle,
-        className: "bg-green-100 text-green-800 border-green-200",
-        iconColor: "text-green-600"
+        className: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border-green-200 dark:border-green-800",
+        iconColor: "text-green-600 dark:text-green-400"
       },
       2: { // 冻结
         icon: Snowflake,
-        className: "bg-red-100 text-red-800 border-red-200",
-        iconColor: "text-red-600"
+        className: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 border-blue-200 dark:border-blue-800",
+        iconColor: "text-blue-600 dark:text-blue-400"
       },
-      3: { // 未开卡
+      3: { // 销卡
+        icon: XCircle,
+        className: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 border-red-200 dark:border-red-800",
+        iconColor: "text-red-600 dark:text-red-400"
+      },
+      4: { // 未开卡
         icon: Clock,
-        className: "bg-gray-100 text-gray-800 border-gray-200",
-        iconColor: "text-gray-600"
+        className: "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-600",
+        iconColor: "text-gray-600 dark:text-gray-400"
       }
     }
     
-    const config = configs[status as keyof typeof configs] || configs[3]
+    const config = configs[status as keyof typeof configs] || configs[4]
     const IconComponent = config.icon
     
     return (
@@ -877,6 +932,16 @@ export default function CardUsersList() {
                         >
                           <Receipt className="h-4 w-4" />
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                          onClick={() => openDeleteDialog(user)}
+                          title="销卡"
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                        
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1025,6 +1090,61 @@ export default function CardUsersList() {
               <p className="text-gray-500 dark:text-gray-400">暂无交易记录</p>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 销卡确认弹框 */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">确认销卡</DialogTitle>
+            <DialogDescription className="text-base text-red-600 dark:text-red-400">
+              ⚠️ 此操作不可撤销，确定要销卡吗？
+            </DialogDescription>
+          </DialogHeader>
+          {userToDelete && (
+            <div className="py-4">
+              <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="flex justify-between items-start">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[80px]">用户名</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100 text-right flex-1">{userToDelete.fullName}</span>
+                </div>
+                <div className="flex justify-between items-start">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[80px]">钱包地址</span>
+                  <span className="text-sm font-mono text-gray-900 dark:text-gray-100 text-right flex-1 break-all">{userToDelete.walletAddress}</span>
+                </div>
+                {userToDelete.cardNumber && (
+                  <div className="flex justify-between items-start">
+                    <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[80px]">卡号</span>
+                    <span className="text-sm font-mono text-gray-900 dark:text-gray-100 text-right flex-1">{userToDelete.cardNumber}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-start">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[80px]">卡类型</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100 text-right flex-1">{userToDelete.cardType}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-3 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false)
+                setUserToDelete(null)
+              }}
+              className="min-w-[80px] hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              取消
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteCard}
+              className="min-w-[100px] bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 text-white transition-colors"
+            >
+              确认销卡
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

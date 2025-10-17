@@ -6,7 +6,8 @@ function getCardStatusText(status: number | null | undefined): string {
   switch (status) {
     case 1: return '正常';
     case 2: return '冻结';
-    case 3: return '未开卡';
+    case 3: return '销卡';
+    case 4: return '未开卡';
     default: return '未知';
   }
 }
@@ -75,10 +76,11 @@ export async function GET(request: NextRequest) {
       where.cardType = cardTypeParam;
     }
 
-    // 如果卡片状态选择的是"未开卡"(3)，则查询 kyc_status=0 的记录
+    // 如果卡片状态选择的是"未开卡"(4)，则查询 kyc_status=0 的记录
+    // 状态说明：1=正常, 2=冻结, 3=销卡, 4=未开卡
     if (cardStatus !== null && cardStatus !== '') {
       const cardStatusValue = parseInt(cardStatus);
-      if (cardStatusValue === 3) {
+      if (cardStatusValue === 4) {
         // 未开卡状态：查询 kyc_status=0 的记录
         where.kycStatus = 0;
       } else {
@@ -251,8 +253,9 @@ export async function GET(request: NextRequest) {
       const transactionKey = `${card.wallet}_${card.cardId}`;
       const transactions = transactionMap.get(transactionKey);
 
-      // 如果 KYC 状态是未提交(0)，则卡片状态应该显示为未开卡(3)
-      const actualCardStatus = (card.kycStatus === 0) ? 3 : (card.status || 0);
+      // 如果 KYC 状态是未提交(0)，则卡片状态应该显示为未开卡(4)
+      // 否则使用数据库中的 status 字段（1=正常, 2=冻结, 3=销卡）
+      const actualCardStatus = (card.kycStatus === 0) ? 4 : (card.status || 0);
 
       // 如果 KYC 状态是未提交(0)，真实开卡时间显示为"未提交"
       const actualRealCardTime = (card.kycStatus === 0) ? '未提交' : (card.updatedAt?.toISOString() || null);

@@ -50,7 +50,8 @@ export async function GET() {
       cardStatuses: [
         { value: 1, label: "正常" },
         { value: 2, label: "冻结" },
-        { value: 3, label: "未开卡" }
+        { value: 3, label: "销卡" },
+        { value: 4, label: "未开卡" }
       ],
       kycStatuses: [
         { value: 0, label: "未提交" },
