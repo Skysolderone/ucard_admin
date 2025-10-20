@@ -109,6 +109,8 @@ export default function KycDataList() {
   const [auditAction, setAuditAction] = useState<'approve' | 'reject' | null>(null)
   const [auditReason, setAuditReason] = useState('')
   const [auditLoading, setAuditLoading] = useState(false)
+  const [allCardBinData, setAllCardBinData] = useState<Record<string, string>>({})
+  const [cardBinLoading, setCardBinLoading] = useState(false)
 
   // 筛选状态
   const [filters, setFilters] = useState({
@@ -266,6 +268,23 @@ export default function KycDataList() {
     return certType.toLowerCase() === 'id_card' ? '身份证' : '护照'
   }
 
+  // 获取所有卡bin数据（不需要wallet参数）
+  const fetchAllCardBinData = async () => {
+    setCardBinLoading(true)
+    try {
+      const response = await fetch(`/api/kyc-data/cardbin?wallet=all`)
+      const data = await response.json()
+
+      if (data.success && data.data && data.data.Data) {
+        setAllCardBinData(data.data.Data)
+      }
+    } catch (error) {
+      console.error('获取卡bin数据失败:', error)
+    } finally {
+      setCardBinLoading(false)
+    }
+  }
+
   // 打开审核对话框
   const openAuditDialog = (record: KycData, action: 'approve' | 'reject') => {
     setSelectedRecord(record)
@@ -325,10 +344,61 @@ export default function KycDataList() {
   useEffect(() => {
     fetchFilterOptions()
     fetchKycData()
+    fetchAllCardBinData()
   }, [fetchKycData])
 
   return (
     <div className="space-y-6">
+      {/* 卡 BIN 数据统计 */}
+      <Card className="shadow-sm border-0 ring-1 ring-orange-200 dark:ring-orange-700 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">卡 BIN 数据</h3>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchAllCardBinData}
+              disabled={cardBinLoading}
+              className="border-orange-300 hover:bg-orange-100 dark:border-orange-700 dark:hover:bg-orange-900/30"
+            >
+              <RotateCcw className={`h-4 w-4 mr-2 ${cardBinLoading ? 'animate-spin' : ''}`} />
+              刷新
+            </Button>
+          </div>
+          {cardBinLoading ? (
+            <div className="text-center py-8">
+              <p className="text-gray-600 dark:text-gray-400">加载中...</p>
+            </div>
+          ) : Object.keys(allCardBinData).length > 0 ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <span>共 <span className="font-semibold text-orange-600 dark:text-orange-400 text-lg">{Object.keys(allCardBinData).length}</span> 个 BIN</span>
+                <span>总数量: <span className="font-semibold text-orange-600 dark:text-orange-400 text-lg">{Object.values(allCardBinData).reduce((sum, val) => sum + parseInt(val || '0'), 0)}</span></span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                {Object.entries(allCardBinData).map(([bin, count]) => (
+                  <div
+                    key={bin}
+                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-gray-800 rounded-lg border-2 border-orange-200 dark:border-orange-700 hover:border-orange-400 dark:hover:border-orange-500 transition-colors shadow-sm hover:shadow-md"
+                  >
+                    <span className="font-mono text-sm font-bold text-gray-800 dark:text-gray-200">{bin}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">数量</span>
+                    <span className="text-lg font-bold text-orange-600 dark:text-orange-400">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-600 dark:text-gray-400">暂无卡 BIN 数据</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* 筛选面板 */}
       <Card>
         <CardContent className="space-y-4 pt-6">

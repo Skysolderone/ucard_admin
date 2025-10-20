@@ -62,6 +62,10 @@ interface CardUser {
   expiryDate?: string
   logicalCardTime: string
   realCardTime?: string
+  cardBinData?: {
+    wallet: string
+    Data: Record<string, string>
+  }
 }
 
 interface FilterOptions {
@@ -870,6 +874,21 @@ export default function CardUsersList() {
                                   {getKycStatusBadge(user.kycStatus, user.kycStatusText)}
                                 </div>
                               </div>
+                              {user.cardBinData && user.cardBinData.Data && Object.keys(user.cardBinData.Data).length > 0 && (
+                                <div className="col-span-2">
+                                  <Label>卡 BIN 数据</Label>
+                                  <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {Object.entries(user.cardBinData.Data).map(([bin, value]) => (
+                                        <div key={bin} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border border-gray-100 dark:border-gray-600">
+                                          <span className="font-mono text-xs text-gray-700 dark:text-gray-300 font-medium">BIN: {bin}</span>
+                                          <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold">{value}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                               <div>
                                 <Label>卡余额</Label>
                                 <p className="mt-1">{formatAmount(user.cardBalance)}</p>
