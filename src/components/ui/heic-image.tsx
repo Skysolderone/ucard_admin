@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import heic2any from "heic2any"
 
 interface HeicImageProps {
   src: string
@@ -41,6 +40,9 @@ export function HeicImage({ src, alt, className, onError }: HeicImageProps) {
       setError(false)
 
       try {
+        // 动态导入heic2any，避免SSR时加载
+        const heic2any = (await import('heic2any')).default
+
         // 获取HEIC图片数据（只请求一次）
         const response = await fetch(src)
         const blob = await response.blob()
