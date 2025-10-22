@@ -38,6 +38,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
+import { HeicImage } from "@/components/ui/heic-image"
 
 interface KycInfo {
   id: number
@@ -745,7 +746,7 @@ export default function KycDataList() {
                                           {getCertTypeText(record.kycInfo.certType) === '身份证' ? '身份证正面' : '护照'}
                                         </Label>
                                         <div className="relative bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                                          <img
+                                          <HeicImage
                                             src={record.kycInfo.portrait || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23f3f4f6"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="16"%3E暂无图片%3C/text%3E%3C/svg%3E'}
                                             alt="证件正面"
                                             className="w-full h-auto max-h-80 object-contain"
@@ -760,7 +761,7 @@ export default function KycDataList() {
                                         <div>
                                           <Label className="text-gray-600 dark:text-gray-400 mb-2 block">身份证反面</Label>
                                           <div className="relative bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                                            <img
+                                            <HeicImage
                                               src={record.kycInfo.reverseSide || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect width="400" height="300" fill="%23f3f4f6"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236b7280" font-size="16"%3E暂无图片%3C/text%3E%3C/svg%3E'}
                                               alt="证件反面"
                                               className="w-full h-auto max-h-80 object-contain"
@@ -787,7 +788,7 @@ export default function KycDataList() {
                                     <div className="flex justify-center">
                                       <div className="w-full max-w-md">
                                         <div className="relative bg-white dark:bg-gray-800 rounded-lg overflow-hidden border-2 border-blue-200 dark:border-blue-800">
-                                          <img
+                                          <HeicImage
                                             src={record.kycInfo.person}
                                             alt="自拍照"
                                             className="w-full h-auto max-h-96 object-contain"
