@@ -280,8 +280,8 @@ export default function KycDataList() {
       if (data.success && data.data && data.data.Data) {
         setAllCardBinData(data.data.Data)
         // 获取第一个卡bin的数量作为总数量
-        const firstBinValue = Object.values(data.data.Data)[0]
-        setCardBinTotal(parseInt(firstBinValue || '0'))
+        const firstBinValue = Object.values(data.data.Data)[0] as string
+        setCardBinTotal(parseInt(firstBinValue || '0', 10))
       }
     } catch (error) {
       console.error('获取卡bin数据失败:', error)
