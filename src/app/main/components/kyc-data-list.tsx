@@ -374,22 +374,33 @@ export default function KycDataList() {
               <p className="text-gray-600 dark:text-gray-400">加载中...</p>
             </div>
           ) : Object.keys(allCardBinData).length > 0 ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                <span>共 <span className="font-semibold text-orange-600 dark:text-orange-400 text-lg">{Object.keys(allCardBinData).length}</span> 个 BIN</span>
-                <span>总数量: <span className="font-semibold text-orange-600 dark:text-orange-400 text-lg">{Object.values(allCardBinData).reduce((sum, val) => sum + parseInt(val || '0'), 0)}</span></span>
+            <div className="space-y-4">
+              <div className="flex items-center justify-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-600 dark:text-gray-400">总数量:</span>
+                  <span className="font-semibold text-orange-600 dark:text-orange-400 text-lg">
+                    {Object.values(allCardBinData).reduce((sum, val) => sum + parseInt(val || '0'), 0)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-600 dark:text-gray-400">BIN 数:</span>
+                  <span className="font-semibold text-orange-600 dark:text-orange-400 text-lg">
+                    {Object.keys(allCardBinData).length}
+                  </span>
+                </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-                {Object.entries(allCardBinData).map(([bin, count]) => (
-                  <div
-                    key={bin}
-                    className="flex flex-col items-center justify-center p-3 bg-white dark:bg-gray-800 rounded-lg border-2 border-orange-200 dark:border-orange-700 hover:border-orange-400 dark:hover:border-orange-500 transition-colors shadow-sm hover:shadow-md"
-                  >
-                    <span className="font-mono text-sm font-bold text-gray-800 dark:text-gray-200">{bin}</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">数量</span>
-                    <span className="text-lg font-bold text-orange-600 dark:text-orange-400">{count}</span>
-                  </div>
-                ))}
+              <div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-2 text-center">卡 BIN 号:</div>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {Object.keys(allCardBinData).map((bin) => (
+                    <span
+                      key={bin}
+                      className="inline-flex items-center px-3 py-1.5 rounded-md bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700 text-sm font-mono font-semibold text-orange-800 dark:text-orange-300"
+                    >
+                      {bin}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           ) : (
