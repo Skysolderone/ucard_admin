@@ -111,6 +111,7 @@ export default function KycDataList() {
   const [auditReason, setAuditReason] = useState('')
   const [auditLoading, setAuditLoading] = useState(false)
   const [allCardBinData, setAllCardBinData] = useState<Record<string, string>>({})
+  const [cardBinTotal, setCardBinTotal] = useState<number>(0)
   const [cardBinLoading, setCardBinLoading] = useState(false)
 
   // 筛选状态
@@ -278,6 +279,9 @@ export default function KycDataList() {
 
       if (data.success && data.data && data.data.Data) {
         setAllCardBinData(data.data.Data)
+        // 获取第一个卡bin的数量作为总数量
+        const firstBinValue = Object.values(data.data.Data)[0]
+        setCardBinTotal(parseInt(firstBinValue || '0'))
       }
     } catch (error) {
       console.error('获取卡bin数据失败:', error)
@@ -379,7 +383,7 @@ export default function KycDataList() {
                 <div className="flex items-center gap-2">
                   <span className="text-gray-600 dark:text-gray-400">总数量:</span>
                   <span className="font-semibold text-orange-600 dark:text-orange-400 text-lg">
-                    {Object.values(allCardBinData).reduce((sum, val) => sum + parseInt(val || '0'), 0)}
+                    {cardBinTotal}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
