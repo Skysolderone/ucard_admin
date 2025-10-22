@@ -16,9 +16,9 @@ export async function GET(request: NextRequest) {
     // }
 
     // 调用外部API获取卡bin数据
-    const externalApiUrl = `http://ucard-api:9091/v1/system/getCardbin`;
+    // const externalApiUrl = `http://ucard-api:9091/v1/system/getCardbin`;
     // const externalApiUrl = `http://localhost:9091/v1/system/getCardbin`;
-
+    const externalApiUrl = `http://ucard_go_api:9091/v1/system/getCardbin`;
     console.log('调用卡bin API:', externalApiUrl);
 
     const externalResponse = await fetch(externalApiUrl, {

@@ -69,6 +69,7 @@ interface KycData {
   id: string
   wallet: string
   cardId: string
+  cardNo: string
   cardBin: string
   cardHolderId: string
   kycStatus: number
@@ -515,7 +516,6 @@ export default function KycDataList() {
                   <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">钱包地址</TableHead>
                   <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">姓名</TableHead>
                   <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">卡号</TableHead>
-                  <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">持卡人ID</TableHead>
                   <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">KYC状态</TableHead>
                   <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">提交时间</TableHead>
                   <TableHead className="font-semibold text-gray-700 dark:text-gray-300 py-4">审核时间</TableHead>
@@ -525,13 +525,13 @@ export default function KycDataList() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8">
+                    <TableCell colSpan={8} className="text-center py-8">
                       加载中...
                     </TableCell>
                   </TableRow>
                 ) : kycData.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8">
+                    <TableCell colSpan={8} className="text-center py-8">
                       暂无数据
                     </TableCell>
                   </TableRow>
@@ -588,12 +588,7 @@ export default function KycDataList() {
                       </TableCell>
                       <TableCell className="py-4">
                         <span className="font-mono text-sm text-gray-600 dark:text-gray-400">
-                          {record.cardId || '未填写'}
-                        </span>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <span className="font-mono text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-600 dark:text-gray-400">
-                          {record.cardHolderId || '未填写'}
+                          {record.cardNo || '未填写'}
                         </span>
                       </TableCell>
                       <TableCell className="py-4">

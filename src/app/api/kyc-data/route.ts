@@ -89,6 +89,11 @@ export async function GET(request: NextRequest) {
       .filter(record => record.kycInfoId)
       .map(record => record.kycInfoId as number);
 
+    // 获取所有需要的 cardId 用于查询 card_no
+    const cardIds = kycAudingRecords
+      .filter(record => record.cardId)
+      .map(record => record.cardId as string);
+
     // 使用原始查询获取 KYC 信息，避免日期解析问题
     let kycInfosRaw: any[] = [];
     if (kycInfoIds.length > 0) {
@@ -165,6 +170,23 @@ export async function GET(request: NextRequest) {
       });
     });
 
+    // 查询 card_no 数据
+    let cardInfosRaw: any[] = [];
+    if (cardIds.length > 0) {
+      const placeholders = cardIds.map(() => '?').join(',');
+      cardInfosRaw = await prisma.$queryRawUnsafe<any[]>(`
+        SELECT card_id, card_no
+        FROM t_card_info
+        WHERE card_id IN (${placeholders})
+      `, ...cardIds);
+    }
+
+    // 创建 cardInfo 映射
+    const cardNoMap = new Map();
+    cardInfosRaw.forEach((cardInfo: any) => {
+      cardNoMap.set(cardInfo.card_id, cardInfo.card_no);
+    });
+
     console.log('kycInfoIds:', kycInfoIds);
     console.log('kycInfosRaw count:', kycInfosRaw.length);
     console.log('kycInfoMap keys:', Array.from(kycInfoMap.keys()));
@@ -190,11 +212,15 @@ export async function GET(request: NextRequest) {
         return date ? date.toISOString() : null;
       };
 
+      // 获取 card_no
+      const cardNo = record.cardId ? cardNoMap.get(record.cardId) : null;
+
       return {
         // KYC审核记录信息
         id: record.id.toString(),
         wallet: record.wallet || '',
         cardId: record.cardId || '',
+        cardNo: cardNo || '',
         cardBin: record.cardBin || '',
         cardHolderId: record.cardHolderId || '',
         kycStatus: record.kycStatus || 0,
