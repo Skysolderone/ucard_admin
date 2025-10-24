@@ -815,43 +815,59 @@ export default function KycDataList() {
                             </div>
                             {/* 详情弹窗底部审核按钮 */}
                             {record.kycStatus === 2 && (
-                              <div className="flex gap-3 pt-4 border-t mt-4">
-                                <Button
-                                  onClick={() => openAuditDialog(record, 'approve')}
-                                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                                >
-                                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                                  通过审核
-                                </Button>
-                                <Button
-                                  onClick={() => openAuditDialog(record, 'reject')}
-                                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                                >
-                                  <XCircle className="h-4 w-4 mr-2" />
-                                  拒绝审核
-                                </Button>
-                              </div>
+                              record.reason === "光子审核中" ? (
+                                <div className="flex gap-3 pt-4 border-t mt-4">
+                                  <div className="w-full p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg text-center">
+                                    <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">
+                                      当前状态：光子审核中，暂不可操作
+                                    </p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex gap-3 pt-4 border-t mt-4">
+                                  <Button
+                                    onClick={() => openAuditDialog(record, 'approve')}
+                                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                                  >
+                                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                                    通过审核
+                                  </Button>
+                                  <Button
+                                    onClick={() => openAuditDialog(record, 'reject')}
+                                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                                  >
+                                    <XCircle className="h-4 w-4 mr-2" />
+                                    拒绝审核
+                                  </Button>
+                                </div>
+                              )
                             )}
                           </DialogContent>
                         </Dialog>
                         {/* 表格操作列审核按钮 */}
                         {record.kycStatus === 2 && (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={() => openAuditDialog(record, 'approve')}
-                              className="bg-green-600 hover:bg-green-700 text-white"
-                            >
-                              通过
-                            </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => openAuditDialog(record, 'reject')}
-                              className="bg-red-600 hover:bg-red-700 text-white"
-                            >
-                              拒绝
-                            </Button>
-                          </>
+                          record.reason === "光子审核中" ? (
+                            <span className="text-xs text-blue-600 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-md border border-blue-200 dark:border-blue-700">
+                              光子审核中
+                            </span>
+                          ) : (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={() => openAuditDialog(record, 'approve')}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                通过
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => openAuditDialog(record, 'reject')}
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                              >
+                                拒绝
+                              </Button>
+                            </>
+                          )
                         )}
                         </div>
                       </TableCell>

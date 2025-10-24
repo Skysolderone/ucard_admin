@@ -65,6 +65,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 检查是否处于光子审核中状态
+    if (audingRecord.reason === '光子审核中') {
+      return NextResponse.json(
+        {
+          success: false,
+          message: '该记录正在光子审核中，暂不可操作',
+        },
+        { status: 400 }
+      );
+    }
+
     // 调用外部API
     try {
       // const externalApiUrl = action === 'approve'
