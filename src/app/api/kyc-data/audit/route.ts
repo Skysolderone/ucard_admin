@@ -82,9 +82,9 @@ export async function POST(request: NextRequest) {
       //   ? 'http://ucard-api:9091/v1/card/approval'
       //   : 'http://ucard-api:9091/v1/card/reject';
       
-      const externalApiUrl = action === 'approve'
-        ? 'http://ucard_go_api:9091/v1/card/approval'
-        : 'http://ucard_go_api:9091/v1/card/reject';
+      // const externalApiUrl = action === 'approve'
+      //   ? 'http://ucard_go_api:9091/v1/card/approval'
+      //   : 'http://ucard_go_api:9091/v1/card/reject';
 
       let requestBody: any;
 
