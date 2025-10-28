@@ -29,12 +29,40 @@ export async function GET() {
 
     const totalBalance = Number(balanceAggregate._sum.cardAmount || 0);
 
-    // 注意：t_card_info 表没有累计充值、消费、提现等字段
-    // 这些数据需要从交易记录表或其他表中聚合
-    // 暂时设置为 0，后续可以根据需要从 t_card_action 等表聚合
-    const totalRecharge = 0;
-    const totalConsume = 0;
-    const totalWithdraw = 0;
+    // 从 t_card_action 表聚合充值、消费、提现数据，只统计 status=1 的记录
+    const rechargeAggregate = await prisma.cardAction.aggregate({
+      where: {
+        tradeType: 'deposit',
+        status: 1, // 只统计状态为1的交易记录
+      },
+      _sum: {
+        amount: true,
+      }
+    });
+
+    const consumeAggregate = await prisma.cardAction.aggregate({
+      where: {
+        tradeType: 'auth',
+        status: 1, // 只统计状态为1的交易记录
+      },
+      _sum: {
+        amount: true,
+      }
+    });
+
+    const withdrawAggregate = await prisma.cardAction.aggregate({
+      where: {
+        tradeType: 'withdraw',
+        status: 1, // 只统计状态为1的交易记录
+      },
+      _sum: {
+        amount: true,
+      }
+    });
+
+    const totalRecharge = Number(rechargeAggregate._sum.amount || 0);
+    const totalConsume = Number(consumeAggregate._sum.amount || 0);
+    const totalWithdraw = Number(withdrawAggregate._sum.amount || 0);
 
     return NextResponse.json({
       success: true,

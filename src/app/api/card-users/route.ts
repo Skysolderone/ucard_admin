@@ -176,10 +176,12 @@ export async function GET(request: NextRequest) {
     });
 
     // 查询所有相关的交易记录并按 wallet、card_id 和 trade_type 聚合
+    // 只统计 status=1 的数据
     const cardActions = await prisma.cardAction.groupBy({
       by: ['wallet', 'cardId', 'tradeType'],
       where: {
         cardId: { in: cardIds },
+        status: 1, // 只统计状态为1的交易记录
       },
       _sum: {
         amount: true,
