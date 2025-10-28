@@ -15,6 +15,7 @@ function getTradeTypeText(tradeType: string | null | undefined): string {
 // 获取交易状态文本
 function getTradeStatusText(status: number | null | undefined): string {
   switch (status) {
+    case 0: return '取消';
     case 1: return '成功';
     case 2: return '进行中';
     case 3: return '失败';
